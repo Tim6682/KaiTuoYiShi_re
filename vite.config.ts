@@ -19,7 +19,13 @@ function readRequestBody(req: import('node:http').IncomingMessage): Promise<stri
   });
 }
 
+// GitHub Pages 部署時需設定 base path
+// 設定環境變數 GITHUB_PAGES=true 時啟用
+const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+const repoName = 'KaiTuoYiShi_re';
+
 export default defineConfig({
+  base: isGitHubPages ? `/${repoName}/` : '/',
   plugins: [
     react(),
     {
