@@ -27,6 +27,7 @@ import type { MemoryRebuildProgress, MemoryRebuildTask } from '@/services/memory
 import type { VariableHistoryRepairProgress } from '@/services/variableHistoryRepair';
 import { lazyWithRetry } from '@/utils/lazyWithRetry';
 import { setStreamingMessage } from '@/utils/streamingMessageStore';
+import { AuthGate } from '@/components/AuthGate';
 
 const NewGameWizard = lazyWithRetry(() => import('@/components/features/NewGame/NewGameWizard').then((module) => ({ default: module.NewGameWizard })));
 const SettingsModal = lazyWithRetry(() => import('@/components/features/Settings/SettingsModal').then((module) => ({ default: module.SettingsModal })));
@@ -537,7 +538,15 @@ const getSaveLoadViewSwitchDelay = () => prefersReducedMotion() ? SAVE_LOAD_REDU
 const getBookOpenDelay = () => prefersReducedMotion() ? BOOK_OPEN_REDUCED_MOTION_MS : BOOK_OPEN_ANIMATION_MS;
 const getBookOpenViewSwitchDelay = () => prefersReducedMotion() ? BOOK_OPEN_REDUCED_VIEW_SWITCH_MS : BOOK_OPEN_VIEW_SWITCH_MS;
 
+// 從環境變數讀取密碼雜湊（建置時注入）
+const APP_PASSWORD_HASH = import.meta.env.VITE_APP_PASSWORD_HASH || '';
+
 export default function App() {
+  // 密碼門：無雜湊或驗證失敗時顯示密碼門
+  if (!APP_PASSWORD_HASH) {
+    console.warn('[AuthGate] 未設定 VITE_APP_PASSWORD_HASH，跳過密碼驗證');
+  }
+
   const { state, actions } = useGame();
   const pendingMemoryDraftCount = (state.记忆.失败草稿 ?? []).filter(
     (draft) => draft.status === 'pending' || draft.status === 'retrying',
@@ -1161,7 +1170,7 @@ export default function App() {
   }
 
   // ── Game ──
-  return (
+  const appContent = (
     <>
       <GameView
         weatherId={state.世界.当前天气}
@@ -1365,6 +1374,18 @@ export default function App() {
         </Suspense>
       )}
     </>
+  );
+
+  // 沒有密碼雜湊時直接顯示內容（開發模式友善）
+  if (!APP_PASSWORD_HASH) {
+    return appContent;
+  }
+
+  // 有密碼雜湊時包裝 AuthGate
+  return (
+    <AuthGate passwordHash={APP_PASSWORD_HASH}>
+      {appContent}
+    </AuthGate>
   );
 }
 

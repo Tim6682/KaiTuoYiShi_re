@@ -41,6 +41,7 @@ jobs:
         env:
           NODE_ENV: production
           GITHUB_PAGES: 'true'
+          VITE_APP_PASSWORD_HASH: ${{ secrets.VITE_APP_PASSWORD_HASH }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
