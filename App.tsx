@@ -311,7 +311,6 @@ function JourneyLaunchOverlay() {
             animationDelay: `${star.delay}s`,
           }}
         ))}
-      ))}
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--a" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--b" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--c" />
@@ -358,7 +357,6 @@ function HomeJourneyOverlay() {
             ['--glint-drift' as string]: glint.drift,
           }}
         ))}
-      ))}
       <div className="kaituo-home-journey__door kaituo-home-journey__door--left" />
       <div className="kaituo-home-journey__door kaituo-home-journey__door--right" />
       <div className="kaituo-home-journey__threshold">
@@ -399,7 +397,6 @@ function SaveLoadOverlay() {
             animationDelay: `${node.delay}s`,
           }}
         ))}
-      ))}
       <div className="kaituo-save-load__archive">
         <div className="kaituo-save-load__frame" />
         <div className="kaituo-save-load__seal">档</div>
@@ -438,7 +435,6 @@ function BookOpenOverlay() {
             ['--book-mote-drift' as string]: mote.drift,
           }}
         ))}
-      ))}
       <div className="kaituo-book-open__book">
         <div className="kaituo-book-open__spine" />
         <div className="kaituo-book-open__page kaituo-book-open__page--left"><span /><span /><span /></div>
@@ -1011,7 +1007,7 @@ export default function App() {
           </Suspense>
         )}
         {showReleaseAnnouncements && (
-          <Suspense fallback={<LazySurfaceFallback label="公告载入中" />}>
+          <Suspense fallback={<LazySurfaceFallback label="公告载入中" />}>>
             <ReleaseAnnouncementsModal
               onClose={() => setShowReleaseAnnouncements(false)}
             />
