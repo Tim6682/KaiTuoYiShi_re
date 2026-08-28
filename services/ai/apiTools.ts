@@ -328,3 +328,85 @@ async function fetchHuggingFaceModels(baseRaw: string, apiKey: string): Promise<
   
   return defaultModels;
 }
+
+// 标准化 OpenCode Zen 基础 URL
+function normalizeOpenCodeModelsBaseUrl(baseRaw: string): string {
+  let base = baseRaw.replace(/\/+$/, '');
+  base = base.split('?')[0] ?? base;
+  base = base
+    .replace(/\/zen\/go\/v1/i, '/zen/v1')
+    .replace(/\/chat\/completions$/i, '')
+    .replace(/\/messages$/i, '')
+    .replace(/\/responses$/i, '')
+    .replace(/\/models(?:\/.*)?$/i, '');
+  if (/^https:\/\/opencode\.ai$/i.test(base)) return `${base}/zen/v1`;
+  if (/\/zen$/i.test(base)) return `${base}/v1`;
+  return base;
+}
+
+// 处理 OpenCode Zen 模型列表（使用代理避免 CORS 问题）
+async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<string[]> {
+  const base = normalizeOpenCodeModelsBaseUrl(baseRaw);
+  // 移除可能的 /v1 后缀以获得一致的基础 URL
+  const baseWithoutV1 = base.replace(/\/v1$/, '');
+  const candidates = Array.from(new Set([
+    `${base}/models`,
+    `${baseWithoutV1}/v1/models`,
+    `${baseWithoutV1}/models`,
+    // 特殊处理 OpenCode Zen 的特殊路径
+    `${baseRaw}/models`, // 保留原始路径作为备选
+    `${baseRaw.replace(/\/v1$/, '')}/models`,
+  ]));
+  
+  const errors: string[] = [];
+  
+  for (const url of candidates) {
+    try {
+      // OpenCode Zen 需要通过本地代理访问以避免 CORS 问题
+      const res = await fetch('/api/opencode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'models',
+          baseUrl: url,
+          apiKey,
+        }),
+      });
+      
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        void appendApiErrorReport({
+          source: 'OpenCode Zen 模型列表',
+          config: { provider: 'openai_compatible', baseUrl: baseRaw, apiKey },
+          status: res.status,
+          requestUrl: url,
+          requestMode: 'models',
+          responseText: text,
+        });
+        errors.push(`${url} -> ${res.status}${text ? `：${text.slice(0, 120)}` : ''}`);
+        continue;
+      }
+      
+      const data = await res.json();
+      if (data && Array.isArray(data.data)) {
+        const ids = data.data
+          .map((model: { id?: string }) => model?.id)
+          .filter((id: unknown): id is string => typeof id === 'string' && id.trim().length > 0);
+        if (ids.length) return ids;
+      }
+      errors.push(`${url} -> 返回格式异常（缺 data 数组）`);
+    } catch (error) {
+      void appendApiErrorReport({
+        source: 'OpenCode Zen 模型列表',
+        config: { provider: 'openai_compatible', baseUrl: baseRaw, apiKey },
+        requestUrl: url,
+        requestMode: 'models',
+        error,
+      });
+      errors.push(`${url} -> ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
+  throw new Error(`OpenCode Zen 获取模型列表失败：\n${errors.join('\n')}`);
+}
+}
