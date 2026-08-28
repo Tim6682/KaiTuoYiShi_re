@@ -246,7 +246,6 @@ function MemoryRebuildModal({
             </button>
           </div>
         </div>
-      </div>
     </Modal>
   );
 }
@@ -310,7 +309,7 @@ function JourneyLaunchOverlay() {
             height: `${star.size}px`,
             animationDelay: `${star.delay}s`,
           }}
-        ))}
+        )}
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--a" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--b" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--c" />
@@ -356,7 +355,7 @@ function HomeJourneyOverlay() {
             animationDelay: `${glint.delay}s`,
             ['--glint-drift' as string]: glint.drift,
           }}
-        ))}
+        )}
       <div className="kaituo-home-journey__door kaituo-home-journey__door--left" />
       <div className="kaituo-home-journey__door kaituo-home-journey__door--right" />
       <div className="kaituo-home-journey__threshold">
@@ -605,7 +604,7 @@ export default function App() {
   const handleToggleStreaming = useCallback(() => {
     state.setGameSettings((prev) => ({
       ...prev,
-      ...prev.enableStreaming: !prev.enableStreaming,
+      enableStreaming: !prev.enableStreaming,
     }));
   }, [state.setGameSettings]);
   const handleEditBody = useCallback((id: string, newBody: string) => {
@@ -1007,7 +1006,7 @@ export default function App() {
           </Suspense>
         )}
         {showReleaseAnnouncements && (
-          <Suspense fallback={<LazySurfaceFallback label="公告载入中" />}>>
+          <Suspense fallback={<LazySurfaceFallback label="公告载入中" />}>
             <ReleaseAnnouncementsModal
               onClose={() => setShowReleaseAnnouncements(false)}
             />
