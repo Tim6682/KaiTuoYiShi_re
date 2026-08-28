@@ -199,7 +199,7 @@ function MemoryRebuildModal({
           <NumberField label="结束回合" value={end} min={1} max={Math.max(1, defaultEnd)} disabled={running || result?.status === 'paused_failed'} onChange={setEnd} />
           <NumberField label="每批回合" value={batchSize} min={1} max={100} disabled={running || result?.status === 'paused_failed'} onChange={setBatchSize} />
         </div>
-        {progress && (
+        {progress ? (
           <div className="px-3 py-3" style={memoryRebuildPanelStyle}>
             <div className="flex items-center justify-between gap-3 text-[12px]" style={{ color: 'rgba(var(--tj-text-secondary),0.84)' }}>
               <span>{running ? '正在重建' : '处理结果'}</span>
@@ -211,7 +211,8 @@ function MemoryRebuildModal({
                 style={{ width: `${progress.totalBatches ? Math.round(progress.completedBatches / progress.totalBatches * 100) : 0}%` }}
               />
             </div>
-          )}
+          </div>
+        ) : null}
           {(statusText || error) && (
             <div className="px-3 py-3 text-[13px] leading-relaxed" style={{ ...memoryRebuildPanelStyle, color: error || result?.status === 'paused_failed' || result?.status === 'blocked' ? 'rgba(var(--tj-danger),0.95)' : 'rgba(var(--tj-ui-success),0.95)' }}>
               {error || statusText}
@@ -309,7 +310,7 @@ function JourneyLaunchOverlay() {
             height: `${star.size}px`,
             animationDelay: `${star.delay}s`,
           }}
-        )}
+        ))}
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--a" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--b" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--c" />
@@ -355,7 +356,7 @@ function HomeJourneyOverlay() {
             animationDelay: `${glint.delay}s`,
             ['--glint-drift' as string]: glint.drift,
           }}
-        )}
+        ))}
       <div className="kaituo-home-journey__door kaituo-home-journey__door--left" />
       <div className="kaituo-home-journey__door kaituo-home-journey__door--right" />
       <div className="kaituo-home-journey__threshold">
