@@ -310,6 +310,7 @@ function JourneyLaunchOverlay() {
             height: `${star.size}px`,
             animationDelay: `${star.delay}s`,
           }}
+        />
         ))}
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--a" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--b" />
@@ -356,6 +357,7 @@ function HomeJourneyOverlay() {
             animationDelay: `${glint.delay}s`,
             ['--glint-drift' as string]: glint.drift,
           }}
+        />
         ))}
       <div className="kaituo-home-journey__door kaituo-home-journey__door--left" />
       <div className="kaituo-home-journey__door kaituo-home-journey__door--right" />
@@ -396,6 +398,7 @@ function SaveLoadOverlay() {
             height: `${node.size}px`,
             animationDelay: `${node.delay}s`,
           }}
+        />
         ))}
       <div className="kaituo-save-load__archive">
         <div className="kaituo-save-load__frame" />
@@ -434,6 +437,7 @@ function BookOpenOverlay() {
             animationDelay: `${mote.delay}s`,
             ['--book-mote-drift' as string]: mote.drift,
           }}
+        />
         ))}
       <div className="kaituo-book-open__book">
         <div className="kaituo-book-open__spine" />
