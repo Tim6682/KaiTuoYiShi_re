@@ -6,7 +6,9 @@ import { isArkBaseUrl, normalizeArkBaseUrl } from './arkProxyCore';
 import { isClineBaseUrl } from './clineProxyCore';
 import { CLINE_RECOMMENDED_MODELS } from './clineModels';
 import { fetchOpenAICompatibleModels } from './openAICompatibleModels';
-import { normalizeGeminiBaseUrl } from './geminiEndpointPolicy';
+import {
+  normalizeGeminiBaseUrl
+} from './geminiEndpointPolicy';
 import {
   createConnectionTestChallenge,
   matchesConnectionTestChallenge,
@@ -18,6 +20,82 @@ export interface ConnectionTestResult {
   detail: string;
 }
 
+// 检测 OpenCode Zen 基础 URL
+function isOpenCodeBaseUrl(baseUrl: string): boolean {
+  const lower = baseUrl.toLowerCase();
+  return lower.includes('opencode.ai') && 
+         (lower.includes('/zen/') || lower.endsWith('/zen/v1') || lower.endsWith('/zen') ||
+          (lower.includes('/v1') && lower.includes('zen')));
+}
+
+// 检测 Ollama 基础 URL
+function isOllamaBaseUrl(baseUrl: string): boolean {
+  const lower = baseUrl.toLowerCase();
+  return lower.includes('ollama.com') || 
+         lower.includes('localhost:11434') ||
+         lower.includes('127.0.0.1:11434');
+}
+
+// 检测 NVIDIA NIM 基础 URL
+function isNvidiaNimBaseUrl(baseUrl: string): boolean {
+  const lower = baseUrl.toLowerCase();
+  return lower.includes('ai.api.nvidia.com') || 
+         lower.includes('nim.api.nvidia.com');
+}
+
+// 检测 Hugging Face 基础 URL
+function isHuggingFaceBaseUrl(baseUrl: string): boolean {
+  const lower = baseUrl.toLowerCase();
+  return lower.includes('huggingface.co') || 
+         lower.includes('api-inference.huggingface.co');
+}
+
+// 标准化 OpenCode Zen 基础 URL
+function normalizeOpenCodeModelsBaseUrl(baseRaw: string): string {
+  let base = baseRaw.replace(/\/+$/, '');
+  base = base.split('?')[0] ?? base;
+  base = base
+    .replace(/\/zen\/go\/v1/i, '/zen/v1')
+    .replace(/\/chat\/completions$/i, '')
+    .replace(/\/messages$/i, '')
+    .replace(/\/responses$/i, '')
+    .replace(/\/models(?:\/.*)?$/i, '');
+  if (/^https:\/\/opencode\.ai$/i.test(base)) return `${base}/zen/v1`;
+  if (/\/zen$/i.test(base)) return `${base}/v1`;
+  return base;
+}
+
+// 存根函数（待实现的服务）
+function fetchMimoModels(_baseRaw: string, _apiKey: string): Promise<string[]> {
+  return Promise.resolve([]);
+}
+function fetchGeminiModels(_baseRaw: string, _apiKey: string): Promise<string[]> {
+  return Promise.resolve([]);
+}
+function fetchClaudeModels(_baseRaw: string, _apiKey: string): Promise<string[]> {
+  return Promise.resolve([]);
+}
+function fetchBaiduQianfanModels(_baseRaw: string, _apiKey: string): Promise<string[]> {
+  return Promise.resolve([]);
+}
+function fetchArkModels(_baseRaw: string, _apiKey: string): Promise<string[]> {
+  return Promise.resolve([]);
+}
+function fetchPioneerModels(_baseRaw: string, _apiKey: string): Promise<string[]> {
+  return Promise.resolve([]);
+}
+
+// 测试连接
+export async function testConnection(config: any): Promise<ConnectionTestResult> {
+  try {
+    const models = await fetchModels(config);
+    return { ok: true, detail: `成功获取到 ${models.length} 个模型` };
+  } catch (e) {
+    return { ok: false, detail: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+// 主要的模型获取函数
 export async function fetchModels(config: any): Promise<string[]> {
   const retryCount = Math.max(0, Math.trunc(Number(config?.retryCount ?? 0)) || 0);
   const baseRaw = (config?.baseUrl || '').trim();
@@ -28,19 +106,19 @@ export async function fetchModels(config: any): Promise<string[]> {
   // 检测特定服务并使用对应的处理函数
   // 注意：我们需要避免与已经定义在底部的 fetchOpenCodeModels 函数命名冲突
   // 所以我们在这里使用不同的逻辑来调用它
-  
+
   // 检测 OpenCode Zen 并使用现有的处理函数
   if (isOpenCodeBaseUrl(baseRaw)) {
     // 调用文件底部已经定义的 fetchOpenCodeModels 函数
     // 由于函数提升，这个引用是安全的，只要我们不在这里定义同名函数
     return fetchOpenCodeModels(baseRaw, apiKey);
   }
-  
+
   // 检测 Ollama 并使用我们新定义的处理函数
   if (isOllamaBaseUrl(baseRaw)) {
     return fetchOllamaModels(baseRaw, apiKey);
   }
-  
+
   if (config.provider === 'mimo' || /xiaomimimo|mimo\.mi/i.test(baseRaw)) {
     return fetchMimoModels(baseRaw, apiKey);
   }
@@ -75,54 +153,6 @@ export async function fetchModels(config: any): Promise<string[]> {
   return fetchOpenAICompatibleModels(baseRaw, apiKey);
 }
 
-// 检测 OpenCode Zen 基础 URL
-function isOpenCodeBaseUrl(baseUrl: string): boolean {
-  const lower = baseUrl.toLowerCase();
-  return lower.includes('opencode.ai') && 
-         (lower.includes('/zen/') || lower.endsWith('/zen/v1') || lower.endsWith('/zen') ||
-          (lower.includes('/v1') && lower.includes('zen')));
-}
-
-// 检测 Ollama 基础 URL
-function isOllamaBaseUrl(baseUrl: string): boolean {
-  const lower = baseUrl.toLowerCase();
-  return lower.includes('ollama.com') || 
-         lower.includes('localhost:11434') ||
-         lower.includes('127.0.0.1:11434');
-}
-
-// 检测 NVIDIA NIM 基础 URL
-function isNvidiaNimBaseUrl(baseUrl: string): boolean {
-  const lower = baseUrl.toLowerCase();
-  return lower.includes('ai.api.nvidia.com') || 
-         lower.includes('nim.api.nvidia.com');
-}
-
-// 检测 Hugging Face 基础 URL
-function isHuggingFaceBaseUrl(baseUrl: string): boolean {
-  const lower = baseUrl.toLowerCase();
-  return lower.includes('huggingface.co') || 
-         lower.includes('api-inference.huggingface.co');
-}
-
-// 处理 OpenCode Zen 模型列表（当通过 openai_compatible 提供商访问时）
-async function handleOpenCodeModelFetch(baseRaw: string, apiKey: string): Promise<string[]> {
-  // 复用文件底部已经定义的 fetchOpenCodeModels 函数逻辑
-  // 但为了避免命名冲突，我们在这里重新实现必要的部分
-  // 或者更简单地，我们可以调用底部的函数，但需要确保不会递归
-  
-  // 实际上，让我们直接使用已经存在的函数
-  // 由于JavaScript的函数提升，底部定义的函数可以在这里被引用
-  // 但我们需要确保我们不造成无限递归
-  
-  // 让我们采用不同的方法：不在这里定义处理函数，而是在fetchModels中直接调用已有的函数
-  // 但我们需要避免命名冲突
-  
-  // 最简单的解决方案：不在这里定义辅助函数，而是在fetchModels中增加条件检查
-  // 然后直接调用已经存在的fetchOpenCodeModels函数（文件底部）
-  throw new Error('此函数不应该被调用');
-}
-
 // 处理 Ollama 模型列表
 async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<string[]> {
   // Ollama 使用 /api/tags 端点列出模型
@@ -135,16 +165,16 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
     `${baseWithoutV1}/api/models`, // 备用端点
     `${base}/api/models`,
   ]));
-  
+
   const errors: string[] = [];
-  
+
   for (const url of candidates) {
     try {
       const res = await fetch(url, {
         // Ollama 通常不需要 Authorization 头，但如果提供了 apiKey 我们也可以尝试
         headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
       });
-      
+
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         void appendApiErrorReport({
@@ -158,10 +188,10 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
         errors.push(`${url} -> ${res.status}${text ? `：${text.slice(0, 120)}` : ''}`);
         continue;
       }
-      
+
       const data = await res.json();
       let ids: string[] = [];
-      
+
       // 处理 Ollama 的响应格式
       // 对于 /api/tags: { models: [{ name: 'model:version', ...}, ...] }
       // 对于 /api/models: 可能有不同格式
@@ -176,12 +206,12 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
           .map((m: { name?: string; id?: string }) => m?.name || m?.id)
           .filter((id: unknown): id is string => typeof id === 'string' && id.trim().length > 0);
       }
-      
+
       if (ids.length) {
         // 去重
         return [...new Set(ids)];
       }
-      
+
       errors.push(`${url} -> 返回格式异常（无法提取模型列表）`);
     } catch (error) {
       void appendApiErrorReport({
@@ -194,7 +224,7 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
       errors.push(`${url} -> ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  
+
   throw new Error(`Ollama 获取模型列表失败：\n${errors.join('\n')}`);
 }
 
@@ -209,15 +239,15 @@ async function fetchNvidiaNimModels(baseRaw: string, apiKey: string): Promise<st
     `${baseWithoutV1}/v1/models`,
     `${baseWithoutV1}/models`,
   ]));
-  
+
   const errors: string[] = [];
-  
+
   for (const url of candidates) {
     try {
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${apiKey}` },
       });
-      
+
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         void appendApiErrorReport({
@@ -231,7 +261,7 @@ async function fetchNvidiaNimModels(baseRaw: string, apiKey: string): Promise<st
         errors.push(`${url} -> ${res.status}${text ? `：${text.slice(0, 120)}` : ''}`);
         continue;
       }
-      
+
       const data = await res.json();
       if (data && Array.isArray(data.data)) {
         const ids = data.data
@@ -251,7 +281,7 @@ async function fetchNvidiaNimModels(baseRaw: string, apiKey: string): Promise<st
       errors.push(`${url} -> ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  
+
   throw new Error(`NVIDIA NIM 获取模型列表失败：\n${errors.join('\n')}`);
 }
 
@@ -263,15 +293,15 @@ async function fetchHuggingFaceModels(baseRaw: string, apiKey: string): Promise<
     'https://huggingface.co/api/models?filter=text-generation&sort=downloads&limit=50',
     'https://huggingface.co/api/models?filter=conversational&sort=downloads&limit=50',
   ];
-  
+
   const errors: string[] = [];
-  
+
   for (const url of candidates) {
     try {
       const res = await fetch(url, {
         headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
       });
-      
+
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         void appendApiErrorReport({
@@ -285,20 +315,20 @@ async function fetchHuggingFaceModels(baseRaw: string, apiKey: string): Promise<
         errors.push(`${url} -> ${res.status}${text ? `：${text.slice(0, 120)}` : ''}`);
         continue;
       }
-      
+
       const data = await res.json();
       let ids: string[] = [];
-      
+
       if (Array.isArray(data)) {
         ids = data
           .map((model: { modelId?: string; id?: string }) => model?.modelId || model?.id)
           .filter((id: unknown): id is string => typeof id === 'string' && id.trim().length > 0);
       }
-      
+
       if (ids.length) {
         return [...new Set(ids)];
       }
-      
+
       errors.push(`${url} -> 返回格式异常（无法提取模型列表）`);
     } catch (error) {
       void appendApiErrorReport({
@@ -311,7 +341,7 @@ async function fetchHuggingFaceModels(baseRaw: string, apiKey: string): Promise<
       errors.push(`${url} -> ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  
+
   // 如果 API 调用失败，返回一些常用的默认模型
   const defaultModels = [
     'meta-llama/Llama-3.1-8B-Instruct',
@@ -325,23 +355,8 @@ async function fetchHuggingFaceModels(baseRaw: string, apiKey: string): Promise<
     'microsoft/Phi-3.5-mini-instruct',
     'microsoft/Phi-3.5-medium-instruct',
   ];
-  
-  return defaultModels;
-}
 
-// 标准化 OpenCode Zen 基础 URL
-function normalizeOpenCodeModelsBaseUrl(baseRaw: string): string {
-  let base = baseRaw.replace(/\/+$/, '');
-  base = base.split('?')[0] ?? base;
-  base = base
-    .replace(/\/zen\/go\/v1/i, '/zen/v1')
-    .replace(/\/chat\/completions$/i, '')
-    .replace(/\/messages$/i, '')
-    .replace(/\/responses$/i, '')
-    .replace(/\/models(?:\/.*)?$/i, '');
-  if (/^https:\/\/opencode\.ai$/i.test(base)) return `${base}/zen/v1`;
-  if (/\/zen$/i.test(base)) return `${base}/v1`;
-  return base;
+  return defaultModels;
 }
 
 // 处理 OpenCode Zen 模型列表（使用代理避免 CORS 问题）
@@ -357,9 +372,9 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
     `${baseRaw}/models`, // 保留原始路径作为备选
     `${baseRaw.replace(/\/v1$/, '')}/models`,
   ]));
-  
+
   const errors: string[] = [];
-  
+
   for (const url of candidates) {
     try {
       // OpenCode Zen 需要通过本地代理访问以避免 CORS 问题
@@ -372,7 +387,7 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
           apiKey,
         }),
       });
-      
+
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         void appendApiErrorReport({
@@ -386,7 +401,7 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
         errors.push(`${url} -> ${res.status}${text ? `：${text.slice(0, 120)}` : ''}`);
         continue;
       }
-      
+
       const data = await res.json();
       if (data && Array.isArray(data.data)) {
         const ids = data.data
@@ -406,6 +421,6 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
       errors.push(`${url} -> ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  
+
   throw new Error(`OpenCode Zen 获取模型列表失败：\n${errors.join('\n')}`);
 }

@@ -1,3 +1,4 @@
+/// <reference types="vite-client" />
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '@/hooks/useGame';
 import { LandingPage } from '@/components/layout/LandingPage';
@@ -35,12 +36,11 @@ const SaveLoadModal = lazyWithRetry(() => import('@/components/features/SaveLoad
 const PhoneModal = lazyWithRetry(() => import('@/components/features/Phone/PhoneModal').then((module) => ({ default: module.PhoneModal })));
 const WorldbookManagerModal = lazyWithRetry(() => import('@/components/features/Worldbook/WorldbookManagerModal').then((module) => ({ default: module.WorldbookManagerModal })));
 const ZhikuManagerModal = lazyWithRetry(() => import('@/components/features/ZhikuV3/ZhikuManagerModal').then((module) => ({ default: module.ZhikuManagerModal })));
-const GitHubCloudSaveModal = lazyWithRetry(() => import('@/components/features/CloudSave/GitHubCloudSaveModal').then((module) => ({ default: module.GitHubCloudSaveModal })));
+const GitHubCloudSaveModal = lazyWithRetry(() => import('@/features/CloudSave/GitHubCloudSaveModal').then((module) => ({ default: module.GitHubCloudSaveModal })));
 const ReleaseAnnouncementsModal = lazyWithRetry(() => import('@/components/features/Release/ReleaseAnnouncementsModal').then((module) => ({ default: module.ReleaseAnnouncementsModal })));
 const PlotPanel = lazyWithRetry(() => import('@/components/features/GameSystems/PlotPanel').then((module) => ({ default: module.PlotPanel })));
 const YitingPanel = lazyWithRetry(() => import('@/components/features/GameSystems/YitingPanel').then((module) => ({ default: module.YitingPanel })));
 const MemoryPanel = lazyWithRetry(() => import('@/components/features/GameSystems/MemoryPanel').then((module) => ({ default: module.MemoryPanel })));
-const AlbumPanel = lazyWithRetry(() => import('@/components/features/GameSystems/AlbumPanel').then((module) => ({ default: module.AlbumPanel })));
 const SkillPanel = lazyWithRetry(() => import('@/components/features/GameSystems/SkillPanel').then((module) => ({ default: module.SkillPanel })));
 const InventoryPanel = lazyWithRetry(() => import('@/components/features/GameSystems/InventoryPanel').then((module) => ({ default: module.InventoryPanel })));
 const NewsPanel = lazyWithRetry(() => import('@/components/features/GameSystems/NewsPanel').then((module) => ({ default: module.NewsPanel })));
@@ -211,40 +211,40 @@ function MemoryRebuildModal({
                 style={{ width: `${progress.totalBatches ? Math.round(progress.completedBatches / progress.totalBatches * 100) : 0}%` }}
               />
             </div>
-          </div>
-        )}
-        {(statusText || error) && (
-          <div className="px-3 py-3 text-[13px] leading-relaxed" style={{ ...memoryRebuildPanelStyle, color: error || result?.status === 'paused_failed' || result?.status === 'blocked' ? 'rgba(var(--tj-danger),0.95)' : 'rgba(var(--tj-ui-success),0.95)' }}>
-            {error || statusText}
-          </div>
-        )}
-        <div className="flex flex-wrap justify-end gap-2">
-          {!running && result?.status === 'paused_failed' && (
+          )}
+          {(statusText || error) && (
+            <div className="px-3 py-3 text-[13px] leading-relaxed" style={{ ...memoryRebuildPanelStyle, color: error || result?.status === 'paused_failed' || result?.status === 'blocked' ? 'rgba(var(--tj-danger),0.95)' : 'rgba(var(--tj-ui-success),0.95)' }}>
+              {error || statusText}
+            </div>
+          )}
+          <div className="flex flex-wrap justify-end gap-2">
+            {!running && result?.status === 'paused_failed' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setResult(null);
+                  setProgress(null);
+                }}
+                className="kaituo-close-btn px-4 py-2 text-sm"
+              >
+                放弃本次进度
+              </button>
+            )}
+            {running ? (
+              <button type="button" onClick={onAbort} className="kaituo-close-btn px-4 py-2 text-sm">取消重建</button>
+            ) : (
+              <button type="button" onClick={handleClose} className="kaituo-close-btn px-4 py-2 text-sm">关闭</button>
+            )}
             <button
               type="button"
-              onClick={() => {
-                setResult(null);
-                setProgress(null);
-              }}
-              className="kaituo-close-btn px-4 py-2 text-sm"
+              onClick={() => void handleRun()}
+              disabled={running}
+              className="px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-45"
+              style={{ color: 'rgb(var(--tj-text-primary))', boxShadow: 'inset 0 0 0 1px rgba(var(--tj-accent-primary),0.5)', background: 'rgba(var(--tj-accent-primary),0.12)' }}
             >
-              放弃本次进度
+              {running ? '重建中...' : result?.status === 'paused_failed' ? '从失败批次继续' : '开始重建'}
             </button>
-          )}
-          {running ? (
-            <button type="button" onClick={onAbort} className="kaituo-close-btn px-4 py-2 text-sm">取消重建</button>
-          ) : (
-            <button type="button" onClick={handleClose} className="kaituo-close-btn px-4 py-2 text-sm">关闭</button>
-          )}
-          <button
-            type="button"
-            onClick={() => void handleRun()}
-            disabled={running}
-            className="px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-45"
-            style={{ color: 'rgb(var(--tj-text-primary))', boxShadow: 'inset 0 0 0 1px rgba(var(--tj-accent-primary),0.5)', background: 'rgba(var(--tj-accent-primary),0.12)' }}
-          >
-            {running ? '重建中...' : result?.status === 'paused_failed' ? '从失败批次继续' : '开始重建'}
-          </button>
+          </div>
         </div>
       </div>
     </Modal>
@@ -310,7 +310,7 @@ function JourneyLaunchOverlay() {
             height: `${star.size}px`,
             animationDelay: `${star.delay}s`,
           }}
-        />
+        ))}
       ))}
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--a" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--b" />
@@ -357,7 +357,7 @@ function HomeJourneyOverlay() {
             animationDelay: `${glint.delay}s`,
             ['--glint-drift' as string]: glint.drift,
           }}
-        />
+        ))}
       ))}
       <div className="kaituo-home-journey__door kaituo-home-journey__door--left" />
       <div className="kaituo-home-journey__door kaituo-home-journey__door--right" />
@@ -398,14 +398,13 @@ function SaveLoadOverlay() {
             height: `${node.size}px`,
             animationDelay: `${node.delay}s`,
           }}
-        />
+        ))}
       ))}
       <div className="kaituo-save-load__archive">
         <div className="kaituo-save-load__frame" />
         <div className="kaituo-save-load__seal">档</div>
         <div className="kaituo-save-load__title">存档索引已唤醒</div>
         <div className="kaituo-save-load__subtitle">正在同步开拓记忆</div>
-        <div className="kaituo-save-load__bar"><span /></div>
       </div>
       <div className="kaituo-save-load__scan kaituo-save-load__scan--a" />
       <div className="kaituo-save-load__scan kaituo-save-load__scan--b" />
@@ -438,7 +437,7 @@ function BookOpenOverlay() {
             animationDelay: `${mote.delay}s`,
             ['--book-mote-drift' as string]: mote.drift,
           }}
-        />
+        ))}
       ))}
       <div className="kaituo-book-open__book">
         <div className="kaituo-book-open__spine" />
@@ -610,7 +609,7 @@ export default function App() {
   const handleToggleStreaming = useCallback(() => {
     state.setGameSettings((prev) => ({
       ...prev,
-      enableStreaming: !prev.enableStreaming,
+      ...prev.enableStreaming: !prev.enableStreaming,
     }));
   }, [state.setGameSettings]);
   const handleEditBody = useCallback((id: string, newBody: string) => {
@@ -622,8 +621,7 @@ export default function App() {
               content: newBody,
               parsedResponse: { ...m.parsedResponse, body: newBody },
             }
-          : m,
-      ),
+          : m),
     );
   }, [state.setChatHistory]);
   const handleReparseVariables = useCallback(async (messageId: string) => {
@@ -751,9 +749,9 @@ export default function App() {
           msg.debugContext?.zhikuRecallPreview?.trim()
         ),
       );
-    return latest?.debugContext?.recallSummary?.trim()
-      || latest?.debugContext?.zhikuRecallPreview?.trim()
-      || '';
+  return latest?.debugContext?.recallSummary?.trim()
+    || latest?.debugContext?.zhikuRecallPreview?.trim()
+    || '';
   }, [state.chatHistory, state.liveRecallSummary, state.loading]);
   const latestRecallFullContent = useMemo(() => {
     if (state.loading && state.liveRecallFullContent.trim()) return state.liveRecallFullContent.trim();
@@ -766,9 +764,9 @@ export default function App() {
           msg.debugContext?.zhikuRecallInjection?.trim()
         ),
       );
-    return latest?.debugContext?.recallFullContent?.trim()
-      || latest?.debugContext?.zhikuRecallInjection?.trim()
-      || '';
+  return latest?.debugContext?.recallFullContent?.trim()
+    || latest?.debugContext?.zhikuRecallInjection?.trim()
+    || '';
   }, [state.chatHistory, state.liveRecallFullContent, state.loading]);
   const latestActiveTask = useMemo(() => (
     [...state.queueTasks].reverse().find((task) =>
@@ -789,7 +787,7 @@ export default function App() {
 
   const narrativeImageManualEnabled = Boolean(
     state.gameSettings.文生图系统?.正文生图?.enabled
-    && state.gameSettings.文生图系统.正文生图.mode === 'manual',
+      && state.gameSettings.文生图系统.正文生图.mode === 'manual',
   );
 
   const recoveryDraft = useMemo(() => (
@@ -902,28 +900,6 @@ export default function App() {
         setWorld={state.set世界}
         onTrigger={handlePathAwakeningTrigger}
         disabled={state.loading || state.pendingVariable}
-      />
-      <InputArea
-        onSend={actions.handleSend}
-        onAbort={actions.handleAbort}
-        loading={state.loading}
-        disabled={state.pendingVariable}
-        inputText={state.inputText}
-        onInputTextChange={state.setInputText}
-        canRestartOpening={state.turnCount <= 5}
-        canReroll={canReroll}
-        onRestartOpening={actions.handleRestartOpening}
-        onReroll={actions.handleReroll}
-        streamingEnabled={state.gameSettings.enableStreaming}
-        onToggleStreaming={handleToggleStreaming}
-        workflowHint={state.workflowHint}
-        workflowStatus={state.workflowStatus}
-        workflowFailed={latestActiveTask?.status === 'failed'}
-        workflowFailCount={latestActiveTask?.failCount ?? (latestActiveTask?.status === 'failed' ? 1 : 0)}
-        workflowRetrying={latestActiveTask?.retrying === true}
-        onCancelWorkflow={actions.handleAbort}
-        actionOptions={actionOptions}
-        recoveryDraft={recoveryDraft}
       />
       <SystemDrawer
         open={activeSystem !== null}
@@ -1039,7 +1015,7 @@ export default function App() {
             <ReleaseAnnouncementsModal
               onClose={() => setShowReleaseAnnouncements(false)}
             />
-          </Suspense>
+          </Suspense
         )}
         {showMysteryChat && (
           <MysteryChatModal onClose={() => setShowMysteryChat(false)} />
@@ -1061,7 +1037,6 @@ export default function App() {
               initialVariableWorkspace={settingsInitialVariableWorkspace}
               旅人={state.旅人}
               世界={state.世界}
-              on世界Change={state.set世界}
               记忆={state.记忆}
               忆庭={state.忆庭}
               智库={state.智库}
@@ -1075,11 +1050,8 @@ export default function App() {
               worldbooks={state.worldbooks}
 
               onWorldbooksChange={(books) => {
-
                 state.setWorldbooks(books);
-
                 saveSetting('worldbooks', books);
-
               }}
               variableSetters={{
                 set旅人: state.set旅人,
@@ -1163,355 +1135,7 @@ export default function App() {
             onGenerateTravelerTemplate={handleGenerateTravelerTemplate}
           />
         </Suspense>
-        {homeJourneyTransitioning ? <HomeJourneyOverlay /> : null}
-        {launchingJourney ? <JourneyLaunchOverlay /> : null}
       </>
     );
-  }
-
-  // ── Game ──
-  const appContent = (
-    <>
-      <GameView
-        weatherId={state.世界.当前天气}
-        topBar={topBar}
-        leftPanel={leftPanel}
-        rightPanel={rightPanel}
-        chatArea={chatArea}
-      />
-
-      {/* Mobile bottom menu */}
-      {!activeSystem && !showSettings && !showWorldbookManager && !showZhikuManager && !showSaveLoad && !showCharacter && !showPhone && !showMemoryRebuild && (
-        <MobileQuickMenu
-          onHome={actions.handleGoHome}
-          onCharacter={handleOpenProfile}
-          onPhone={handleOpenPhone}
-          onSettings={handleOpenSettings}
-          onSave={handleOpenSaveLoad}
-          onSystemSelect={handleMenuSelect}
-          phoneUnread={state.手机.unreadTotal}
-          memoryUnread={pendingMemoryDraftCount}
-        />
-      )}
-
-      {/* Modals */}
-      {showSettings && (
-        <Suspense fallback={<LazySurfaceFallback label="设置载入中" />}>
-          <SettingsModal
-            onClose={() => setShowSettings(false)}
-            apiSettings={state.apiSettings}
-            onApiSettingsChange={state.setApiSettings}
-            gameSettings={state.gameSettings}
-            onGameSettingsChange={state.setGameSettings}
-            currentTheme={state.currentTheme}
-            onThemeChange={state.setCurrentTheme}
-            onSave={actions.handleSave}
-            onContinue={actions.handleContinue}
-            onLoadSave={(id) => handleLoadById(id, state)}
-            initialTab={settingsInitialTab}
-            initialVariableWorkspace={settingsInitialVariableWorkspace}
-            旅人={state.旅人}
-            世界={state.世界}
-            on世界Change={state.set世界}
-            记忆={state.记忆}
-            忆庭={state.忆庭}
-            智库={state.智库}
-            手机={state.手机}
-            NPC={state.NPC}
-            新闻={state.新闻}
-            剧情编织={state.剧情编织}
-            on剧情编织Change={state.set剧情编织}
-            getContextSnapshot={actions.getContextSnapshot}
-            worldbooks={state.worldbooks}
-            onWorldbooksChange={(books) => {
-              state.setWorldbooks(books);
-              saveSetting('worldbooks', books);
-            }}
-            variableSetters={{
-              set旅人: state.set旅人,
-              set世界: state.set世界,
-              set记忆: state.set记忆,
-              set忆庭: state.set忆庭,
-              set智库: state.set智库,
-              set手机: state.set手机,
-              setNPC: state.setNPC,
-              set新闻: state.set新闻,
-              set剧情: state.set剧情,
-            }}
-            variableEditingLocked={state.loading || state.pendingVariable}
-            chatHistory={state.chatHistory}
-            variableBatches={state.variableBatches}
-            onRepairMessage={handleReparseVariables}
-            onBatchRepair={handleBatchReparseVariables}
-          />
-        </Suspense>
-      )}
-
-      {showCharacter && (
-        <TravelerProfileModal
-          traveler={state.旅人}
-          album={state.相册}
-          onClose={() => setShowCharacter(false)}
-        />
-      )}
-
-      {showPhone && (
-        <Suspense fallback={<LazySurfaceFallback label="手机载入中" />}>
-          <PhoneModal
-            phone={state.手机}
-            traveler={state.旅人}
-            world={state.世界}
-            memory={state.记忆}
-            yiting={state.忆庭}
-            news={state.新闻}
-            storyWeaving={state.剧情编织}
-            zhiku={state.智库}
-            apiSettings={state.apiSettings}
-            gameSettings={state.gameSettings}
-            turnCount={state.turnCount}
-            mainChatHistory={state.chatHistory}
-            npcRecords={state.NPC}
-            album={state.相册}
-            onPhoneChange={state.set手机}
-            onMemoryChange={state.set记忆}
-            onYitingChange={state.set忆庭}
-            onNpcRecordsChange={state.setNPC}
-            onCommitPhoneMemory={actions.commitPhoneMemory}
-            onClose={() => setShowPhone(false)}
-          />
-        </Suspense>
-      )}
-
-      {state.记忆压缩失败 && (
-        <MemoryCompressRetryModal
-          failedCount={state.记忆压缩失败.条数}
-          onRetry={() => { void actions.handleSilentMemoryCompress(); }}
-          onClose={() => state.set记忆压缩失败(null)}
-        />
-      )}
-
-      {showMemoryRebuild && (
-        <MemoryRebuildModal
-          defaultEnd={Math.max(1, state.turnCount - 1)}
-          onClose={() => setShowMemoryRebuild(false)}
-          onAbort={actions.handleAbort}
-          onRun={actions.handleBatchMemoryRebuild}
-        />
-      )}
-
-      {variableRepairPlan && (
-        <VariableRepairPreviewModal
-          plan={variableRepairPlan}
-          onClose={() => setVariableRepairPlan(null)}
-          onCommit={(confirmedItemIds) => actions.commitVariableRepairPlan(variableRepairPlan, confirmedItemIds)}
-        />
-      )}
-
-      {variableRepairBatchProgress && (
-        <VariableRepairBatchProgressModal progress={variableRepairBatchProgress} onCancel={handleCancelBatchReparse} />
-      )}
-
-      {state.storyContinuityConfirmation && (
-        <StoryContinuityConfirmationModal
-          confirmation={state.storyContinuityConfirmation}
-          onReject={() => state.setStoryContinuityConfirmation(null)}
-          onAccept={() => {
-            const proposal = state.storyContinuityConfirmation?.proposal;
-            if (proposal?.location && typeof proposal.location === 'string') {
-              state.set世界((world) => ({ ...world, 当前地点: proposal.location as string, 当前区域ID: String(proposal.toRegionId ?? world.当前区域ID) }));
-              // setter 发布后再落一个独立存档，避免确认转场只停留在 React 内存里。
-              window.setTimeout(() => { void actions.handleSave(); }, 0);
-            }
-            state.setStoryContinuityConfirmation(null);
-          }}
-        />
-      )}
-
-      {showWorldbookManager && (
-        <Suspense fallback={<LazySurfaceFallback label="如我所书载入中" />}>
-          <WorldbookManagerModal
-            worldbooks={state.worldbooks}
-            onSave={(books) => {
-              state.setWorldbooks(books);
-              saveSetting('worldbooks', books);
-            }}
-            onClose={() => setShowWorldbookManager(false)}
-          />
-        </Suspense>
-      )}
-
-      {showZhikuManager && (
-        <Suspense fallback={<LazySurfaceFallback label="智库载入中" />}>
-          <ZhikuManagerModal
-            zhikuSystem={state.智库}
-            storyWeavingSystem={state.剧情编织}
-            onZhikuSystemChange={state.set智库}
-            onClose={() => setShowZhikuManager(false)}
-          />
-        </Suspense>
-      )}
-
-      {showSaveLoad && (
-        <Suspense fallback={<LazySurfaceFallback label="存档系统载入中" />}>
-          <SaveLoadModal
-            onSave={actions.handleSave}
-            onLoad={async (id) => {
-              const ok = await handleLoadById(id, state);
-              if (ok) setShowSaveLoad(false);
-              return ok;
-            }}
-            onClose={() => setShowSaveLoad(false)}
-          />
-        </Suspense>
-      )}
-
-      {showCloudSave && (
-        <Suspense fallback={<LazySurfaceFallback label="云存档载入中" />}>
-          <GitHubCloudSaveModal
-            onSave={actions.handleSave}
-            onClose={() => setShowCloudSave(false)}
-          />
-        </Suspense>
-      )}
-    </>
-  );
-
-  // 沒有密碼雜湊時直接顯示內容（開發模式友善）
-  if (!APP_PASSWORD_HASH) {
-    return appContent;
-  }
-
-  // 有密碼雜湊時包裝 AuthGate
-  return (
-    <AuthGate passwordHash={APP_PASSWORD_HASH}>
-      {appContent}
-    </AuthGate>
-  );
-}
-
-// ── Inline character editor ──
-
-function renderSystemPanel(
-  id: GameSystemId | null,
-  ctx: {
-    traveler: 角色数据结构;
-    onTravelerChange: React.Dispatch<React.SetStateAction<角色数据结构>>;
-    onAwakenedNewPath: (id: 命途ID) => void;
-    npcRecords: NPC记录[];
-    onNpcRecordsChange: React.Dispatch<React.SetStateAction<NPC记录[]>>;
-    album: 相册系统;
-    onAlbumChange: React.Dispatch<React.SetStateAction<相册系统>>;
-    phone: import('@/models/phone').手机系统;
-    onPhoneChange: React.Dispatch<React.SetStateAction<import('@/models/phone').手机系统>>;
-    memorySystem: 记忆系统;
-    onMemorySystemChange: React.Dispatch<React.SetStateAction<记忆系统>>;
-    failedDrafts?: 记忆失败草稿[];
-    onRetryFailedDraft?: (draft: 记忆失败草稿) => void;
-    onIgnoreFailedDraft?: (draft: 记忆失败草稿) => void;
-    onOpenMemoryRebuild?: () => void;
-    /** 阶段1·主链压缩手动入口：触发三阶段压缩弹窗 */
-    onTriggerManualCompress?: () => void;
-    yitingSystem: 忆庭系统;
-    zhikuSystem: 智库系统;
-    memorySettings: import('@/models/settings').记忆系统设置;
-    news: 新闻条目[];
-    onNewsChange: React.Dispatch<React.SetStateAction<新闻条目[]>>;
-    plotNodes: 剧情节点[];
-    onPlotNodesChange: React.Dispatch<React.SetStateAction<剧情节点[]>>;
-    storyWeaving: import('@/models/storyWeaving').剧情编织系统;
-    onStoryWeavingChange: React.Dispatch<React.SetStateAction<import('@/models/storyWeaving').剧情编织系统>>;
-    gameSettings: import('@/models/settings').游戏设置;
-    onGameSettingsChange: React.Dispatch<React.SetStateAction<import('@/models/settings').游戏设置>>;
-    apiSettings: import('@/models/settings').API设置;
-    turnCount: number;
-    mainChatHistory: import('@/models/chat').聊天消息[];
-  },
-) {
-  switch (id) {
-    case 'path':
-      return (
-        <PathPanel
-          traveler={ctx.traveler}
-          onTravelerChange={ctx.onTravelerChange}
-          onAwakenedNewPath={ctx.onAwakenedNewPath}
-        />
-      );
-      case 'skill':
-        return <SkillPanel traveler={ctx.traveler} onTravelerChange={ctx.onTravelerChange} apiSettings={ctx.apiSettings} />;
-    case 'inventory':
-      return (
-        <InventoryPanel
-          traveler={ctx.traveler}
-          onTravelerChange={ctx.onTravelerChange}
-          turnCount={ctx.turnCount}
-        />
-      );
-    case 'companion':
-      return (
-        <CompanionPanel
-          npcRecords={ctx.npcRecords}
-          onNpcRecordsChange={ctx.onNpcRecordsChange}
-          album={ctx.album}
-          turnCount={ctx.turnCount}
-          nsfwEnabled={ctx.gameSettings.enableNsfw}
-          maleNsfwArchiveEnabled={ctx.gameSettings.enableMaleNsfwArchive}
-          devMode={ctx.gameSettings.devMode}
-        />
-      );
-    case 'album':
-      return (
-        <AlbumPanel
-          album={ctx.album}
-          onAlbumChange={ctx.onAlbumChange}
-          traveler={ctx.traveler}
-          onTravelerChange={ctx.onTravelerChange}
-          phone={ctx.phone}
-          onPhoneChange={ctx.onPhoneChange}
-          npcs={ctx.npcRecords}
-          onNpcChange={ctx.onNpcRecordsChange}
-          apiSettings={ctx.apiSettings}
-          gameSettings={ctx.gameSettings}
-          onGameSettingsChange={ctx.onGameSettingsChange}
-          imageSettings={ctx.gameSettings.文生图系统}
-          nsfwEnabled={ctx.gameSettings.enableNsfw}
-          nsfwImageEnabled={ctx.gameSettings.文生图系统.enableNsfwImageGeneration}
-          mainChatHistory={ctx.mainChatHistory}
-        />
-      );
-    case 'news':
-      return (
-        <NewsPanel
-          news={ctx.news}
-          onNewsChange={ctx.onNewsChange}
-          turnCount={ctx.turnCount}
-        />
-      );
-    case 'plot':
-      return (
-        <PlotPanel
-          storyWeaving={ctx.storyWeaving}
-          onStoryWeavingChange={ctx.onStoryWeavingChange}
-          gameSettings={ctx.gameSettings}
-          apiSettings={ctx.apiSettings}
-        />
-      );
-    case 'yiting':
-      return <YitingPanel yitingSystem={ctx.yitingSystem} />;
-    case 'memory':
-      return (
-        <MemoryPanel
-          memorySystem={ctx.memorySystem}
-          onMemorySystemChange={ctx.onMemorySystemChange}
-          turnCount={ctx.turnCount}
-          settings={ctx.memorySettings}
-          failedDrafts={ctx.failedDrafts}
-          onRetryFailedDraft={ctx.onRetryFailedDraft}
-          onIgnoreFailedDraft={ctx.onIgnoreFailedDraft}
-          onOpenBatchRebuild={ctx.onOpenMemoryRebuild}
-          onTriggerManualCompress={ctx.onTriggerManualCompress}
-        />
-      );
-    default:
-      return null;
   }
 }
