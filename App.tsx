@@ -1,4 +1,4 @@
-/// <reference types="vite-client" />
+/// <reference types="vite/client" />
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '@/hooks/useGame';
 import { LandingPage } from '@/components/layout/LandingPage';
@@ -36,7 +36,7 @@ const SaveLoadModal = lazyWithRetry(() => import('@/components/features/SaveLoad
 const PhoneModal = lazyWithRetry(() => import('@/components/features/Phone/PhoneModal').then((module) => ({ default: module.PhoneModal })));
 const WorldbookManagerModal = lazyWithRetry(() => import('@/components/features/Worldbook/WorldbookManagerModal').then((module) => ({ default: module.WorldbookManagerModal })));
 const ZhikuManagerModal = lazyWithRetry(() => import('@/components/features/ZhikuV3/ZhikuManagerModal').then((module) => ({ default: module.ZhikuManagerModal })));
-const GitHubCloudSaveModal = lazyWithRetry(() => import('@/features/CloudSave/GitHubCloudSaveModal').then((module) => ({ default: module.GitHubCloudSaveModal })));
+const GitHubCloudSaveModal = lazyWithRetry(() => import('@/components/features/CloudSave/GitHubCloudSaveModal').then((module) => ({ default: module.GitHubCloudSaveModal })));
 const ReleaseAnnouncementsModal = lazyWithRetry(() => import('@/components/features/Release/ReleaseAnnouncementsModal').then((module) => ({ default: module.ReleaseAnnouncementsModal })));
 const PlotPanel = lazyWithRetry(() => import('@/components/features/GameSystems/PlotPanel').then((module) => ({ default: module.PlotPanel })));
 const YitingPanel = lazyWithRetry(() => import('@/components/features/GameSystems/YitingPanel').then((module) => ({ default: module.YitingPanel })));
@@ -45,7 +45,113 @@ const SkillPanel = lazyWithRetry(() => import('@/components/features/GameSystems
 const InventoryPanel = lazyWithRetry(() => import('@/components/features/GameSystems/InventoryPanel').then((module) => ({ default: module.InventoryPanel })));
 const NewsPanel = lazyWithRetry(() => import('@/components/features/GameSystems/NewsPanel').then((module) => ({ default: module.NewsPanel })));
 const CompanionPanel = lazyWithRetry(() => import('@/components/features/GameSystems/CompanionPanel').then((module) => ({ default: module.CompanionPanel })));
+const AlbumPanel = lazyWithRetry(() => import('@/components/features/GameSystems/AlbumPanel').then((module) => ({ default: module.AlbumPanel })));
 const PathPanel = lazyWithRetry(() => import('@/components/features/GameSystems/PathPanel').then((module) => ({ default: module.PathPanel })));
+
+type SystemPanelRenderArgs = {
+  [key: string]: any;
+  failedDrafts: 记忆失败草稿[];
+  onRetryFailedDraft: (draft: 记忆失败草稿) => void;
+  onIgnoreFailedDraft: (draft: 记忆失败草稿) => void;
+};
+
+function renderSystemPanel(activeSystem: GameSystemId | null, args: SystemPanelRenderArgs) {
+  if (!activeSystem) return null;
+
+  switch (activeSystem) {
+    case 'path':
+      return (
+        <PathPanel
+          traveler={args.traveler}
+          onTravelerChange={args.onTravelerChange}
+          onAwakenedNewPath={args.onAwakenedNewPath}
+        />
+      );
+    case 'skill':
+      return (
+        <SkillPanel
+          traveler={args.traveler}
+          onTravelerChange={args.onTravelerChange}
+          apiSettings={args.apiSettings}
+        />
+      );
+    case 'inventory':
+      return (
+        <InventoryPanel
+          traveler={args.traveler}
+          onTravelerChange={args.onTravelerChange}
+          turnCount={args.turnCount}
+        />
+      );
+    case 'companion':
+      return (
+        <CompanionPanel
+          npcRecords={args.npcRecords}
+          onNpcRecordsChange={args.onNpcRecordsChange}
+          album={args.album}
+          turnCount={args.turnCount}
+          nsfwEnabled={Boolean(args.gameSettings.enableNsfw)}
+          maleNsfwArchiveEnabled={Boolean(args.gameSettings.enableMaleNsfwArchive)}
+          devMode={Boolean(args.gameSettings.devMode)}
+        />
+      );
+    case 'album':
+      return (
+        <AlbumPanel
+          album={args.album}
+          onAlbumChange={args.onAlbumChange}
+          traveler={args.traveler}
+          onTravelerChange={args.onTravelerChange}
+          phone={args.phone}
+          onPhoneChange={args.onPhoneChange}
+          npcs={args.npcRecords}
+          onNpcChange={args.onNpcRecordsChange}
+          apiSettings={args.apiSettings}
+          gameSettings={args.gameSettings}
+          onGameSettingsChange={args.onGameSettingsChange}
+          imageSettings={args.gameSettings.文生图系统}
+          nsfwEnabled={Boolean(args.gameSettings.enableNsfw)}
+          nsfwImageEnabled={Boolean(args.gameSettings.enableNsfw && args.gameSettings.文生图系统?.enableNsfwImageGeneration)}
+          mainChatHistory={args.mainChatHistory}
+        />
+      );
+    case 'news':
+      return (
+        <NewsPanel
+          news={args.news}
+          onNewsChange={args.onNewsChange}
+          turnCount={args.turnCount}
+        />
+      );
+    case 'plot':
+      return (
+        <PlotPanel
+          storyWeaving={args.storyWeaving}
+          onStoryWeavingChange={args.onStoryWeavingChange}
+          gameSettings={args.gameSettings}
+          apiSettings={args.apiSettings}
+        />
+      );
+    case 'memory':
+      return (
+        <MemoryPanel
+          memorySystem={args.memorySystem}
+          onMemorySystemChange={args.onMemorySystemChange}
+          turnCount={args.turnCount}
+          settings={args.memorySettings}
+          failedDrafts={args.failedDrafts}
+          onRetryFailedDraft={args.onRetryFailedDraft}
+          onIgnoreFailedDraft={args.onIgnoreFailedDraft}
+          onOpenBatchRebuild={args.onOpenMemoryRebuild}
+          onTriggerManualCompress={args.onTriggerManualCompress}
+        />
+      );
+    case 'yiting':
+      return <YitingPanel yitingSystem={args.yitingSystem} />;
+    default:
+      return null;
+  }
+}
 
 const memoryRebuildPanelStyle = {
   background: 'rgba(var(--tj-surface-strong),0.72)',
@@ -211,6 +317,7 @@ function MemoryRebuildModal({
                 style={{ width: `${progress.totalBatches ? Math.round(progress.completedBatches / progress.totalBatches * 100) : 0}%` }}
               />
             </div>
+          </div>
           )}
           {(statusText || error) && (
             <div className="px-3 py-3 text-[13px] leading-relaxed" style={{ ...memoryRebuildPanelStyle, color: error || result?.status === 'paused_failed' || result?.status === 'blocked' ? 'rgba(var(--tj-danger),0.95)' : 'rgba(var(--tj-ui-success),0.95)' }}>
@@ -309,7 +416,8 @@ function JourneyLaunchOverlay() {
             height: `${star.size}px`,
             animationDelay: `${star.delay}s`,
           }}
-        )}
+        />
+      ))}
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--a" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--b" />
       <div className="kaituo-journey-launch__rail kaituo-journey-launch__rail--c" />
@@ -355,7 +463,8 @@ function HomeJourneyOverlay() {
             animationDelay: `${glint.delay}s`,
             ['--glint-drift' as string]: glint.drift,
           }}
-        )}
+        />
+      ))}
       <div className="kaituo-home-journey__door kaituo-home-journey__door--left" />
       <div className="kaituo-home-journey__door kaituo-home-journey__door--right" />
       <div className="kaituo-home-journey__threshold">
@@ -395,7 +504,8 @@ function SaveLoadOverlay() {
             height: `${node.size}px`,
             animationDelay: `${node.delay}s`,
           }}
-        ))}
+        />
+      ))}
       <div className="kaituo-save-load__archive">
         <div className="kaituo-save-load__frame" />
         <div className="kaituo-save-load__seal">档</div>
@@ -433,7 +543,8 @@ function BookOpenOverlay() {
             animationDelay: `${mote.delay}s`,
             ['--book-mote-drift' as string]: mote.drift,
           }}
-        ))}
+        />
+      ))}
       <div className="kaituo-book-open__book">
         <div className="kaituo-book-open__spine" />
         <div className="kaituo-book-open__page kaituo-book-open__page--left"><span /><span /><span /></div>
@@ -1032,6 +1143,7 @@ export default function App() {
               initialVariableWorkspace={settingsInitialVariableWorkspace}
               旅人={state.旅人}
               世界={state.世界}
+              on世界Change={state.set世界}
               记忆={state.记忆}
               忆庭={state.忆庭}
               智库={state.智库}

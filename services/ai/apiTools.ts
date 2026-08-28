@@ -170,10 +170,9 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
 
   for (const url of candidates) {
     try {
-      const res = await fetch(url, {
-        // Ollama 通常不需要 Authorization 头，但如果提供了 apiKey 我们也可以尝试
-        headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
-      });
+      const headers: Record<string, string> = {};
+      if (apiKey) headers.Authorization = 'Bearer ' + apiKey;
+      const res = await fetch(url, { headers });
 
       if (!res.ok) {
         const text = await res.text().catch(() => '');
@@ -199,7 +198,7 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
         ids = data.models
           .map((m: { name?: string }) => m?.name)
           .filter((name: unknown): name is string => typeof name === 'string' && name.trim().length > 0)
-          .map(name => name.split(':')[0]); // 只取名称部分，去掉版本标签
+          .map((name: string) => name.split(':')[0]); // 只取名称部分，去掉版本标签
       } else if (data && Array.isArray(data)) {
         // 备用格式处理
         ids = data
