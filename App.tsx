@@ -245,7 +245,7 @@ function MemoryRebuildModal({
               {running ? '重建中...' : result?.status === 'paused_failed' ? '从失败批次继续' : '开始重建'}
             </button>
           </div>
-        </div>
+      </div>
     </Modal>
   );
 }
@@ -1010,7 +1010,7 @@ export default function App() {
             <ReleaseAnnouncementsModal
               onClose={() => setShowReleaseAnnouncements(false)}
             />
-          </Suspense
+          </Suspense>
         )}
         {showMysteryChat && (
           <MysteryChatModal onClose={() => setShowMysteryChat(false)} />
