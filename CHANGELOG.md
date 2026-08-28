@@ -6,6 +6,7 @@
 - 修复了 OpenCode Zen 在选择 openai_compatible 提供商时无法获取模型列表的问题
 - 移除了冗余的 handleOpenCodeModelFetch 函数存根
 - 确保 OpenCode Zen 检测和模型获取函数正常工作
+- 修复了 fetchOpenCodeModels 函数中的多余闭合括号，解决 TypeScript TS1128 错误
 
 ### 修复 GitHub Actions 工作流程
 - 解决了 pnpm 版本规范冲突（在 workflow 中移除了重复的版本指定）

@@ -409,4 +409,3 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
   
   throw new Error(`OpenCode Zen 获取模型列表失败：\n${errors.join('\n')}`);
 }
-}
