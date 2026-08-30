@@ -1,0 +1,1 @@
+require('child_process').execSync('"C:\\Program Files\\nodejs\\npm.cmd" install -g pnpm@10.15.0', {stdio: 'inherit'})
