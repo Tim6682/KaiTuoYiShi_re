@@ -1,6 +1,0 @@
-fix: 修復密碼門未生效 + HuggingFace/NVIDIA NIM/OpenCode Go 提供商適配
-
-- AuthGate 正確包裝 App 內容，密碼門現可正常工作
-- detectProvider 顯式識別 huggingface/nvidia_nim provider
-- 模型獲取函數 fetchHuggingFaceModels/fetchNvidiaNimModels 已存在
-- OpenCode Go 透過 URL 模式匹配自動歸類到 openai_compatible
