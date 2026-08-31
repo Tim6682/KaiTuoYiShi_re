@@ -198,8 +198,8 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
       if (data && Array.isArray(data.models)) {
         ids = data.models
           .map((m: { name?: string }) => m?.name)
-          .filter((name: unknown): name is string => typeof name === 'string' && name.trim().length > 0)
-          .map(name => name.split(':')[0]); // 只取名称部分，去掉版本标签
+          .filter((name: string | undefined): name is string => typeof name === 'string' && name.trim().length > 0)
+          .map((name: string) => name.split(':')[0]); // 只取名称部分，去掉版本標籤
       } else if (data && Array.isArray(data)) {
         // 备用格式处理
         ids = data

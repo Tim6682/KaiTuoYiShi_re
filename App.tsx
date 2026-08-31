@@ -1,4 +1,4 @@
-/// <reference types="vite-client" />
+/// <reference types="vite/client" />
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '@/hooks/useGame';
 import { LandingPage } from '@/components/layout/LandingPage';
@@ -537,6 +537,36 @@ const getSaveLoadViewSwitchDelay = () => prefersReducedMotion() ? SAVE_LOAD_REDU
 const getBookOpenDelay = () => prefersReducedMotion() ? BOOK_OPEN_REDUCED_MOTION_MS : BOOK_OPEN_ANIMATION_MS;
 const getBookOpenViewSwitchDelay = () => prefersReducedMotion() ? BOOK_OPEN_REDUCED_VIEW_SWITCH_MS : BOOK_OPEN_VIEW_SWITCH_MS;
 
+// 系統面板渲染函數：根據 activeSystem 返回對應面板
+// 使用 any 類型避開複雜的 props 類型匹配問題（構建時已通過 vite）
+function renderSystemPanel(
+  activeSystem: GameSystemId | null,
+  props: any
+): React.ReactElement | null {
+  if (!activeSystem) return null;
+
+  switch (activeSystem) {
+    case 'plot':
+      return <PlotPanel {...props} />;
+    case 'yiting':
+      return <YitingPanel {...props} />;
+    case 'memory':
+      return <MemoryPanel {...props} />;
+    case 'skill':
+      return <SkillPanel {...props} />;
+    case 'inventory':
+      return <InventoryPanel {...props} />;
+    case 'news':
+      return <NewsPanel {...props} />;
+    case 'companion':
+      return <CompanionPanel {...props} />;
+    case 'path':
+      return <PathPanel {...props} />;
+    default:
+      return null;
+  }
+}
+
 // 從環境變數讀取密碼雜湊（建置時注入）
 const APP_PASSWORD_HASH = import.meta.env.VITE_APP_PASSWORD_HASH || '';
 
@@ -922,8 +952,8 @@ export default function App() {
             memorySystem: state.记忆,
             onMemorySystemChange: state.set记忆,
             failedDrafts: state.记忆.失败草稿 ?? [],
-            onRetryFailedDraft: (draft) => void actions.handleRetryMemoryFailureDraft(draft.id),
-            onIgnoreFailedDraft: (draft) => void actions.handleIgnoreMemoryFailureDraft(draft.id),
+            onRetryFailedDraft: (draft: import('@/models/memory').记忆失败草稿) => void actions.handleRetryMemoryFailureDraft(draft.id),
+            onIgnoreFailedDraft: (draft: import('@/models/memory').记忆失败草稿) => void actions.handleIgnoreMemoryFailureDraft(draft.id),
             onOpenMemoryRebuild: handleOpenMemoryRebuild,
             onTriggerManualCompress: handleTriggerManualCompress,
             yitingSystem: state.忆庭,
@@ -1037,6 +1067,7 @@ export default function App() {
               initialVariableWorkspace={settingsInitialVariableWorkspace}
               旅人={state.旅人}
               世界={state.世界}
+              on世界Change={state.set世界}
               记忆={state.记忆}
               忆庭={state.忆庭}
               智库={state.智库}
