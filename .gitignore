@@ -91,3 +91,11 @@ scripts/_preset-dump.txt
 scripts/_g*-gate-runner.mjs
 scripts/build-shuangrenchenghang-preset.mjs
 scripts/sync-codex-skills.mjs
+commit-msg.txt
+install-pnpm.*
+find-pnpm.*
+deploy-all.cjs
+update-deps.cjs
+20*.ps1
+*.ps1.bak
+
