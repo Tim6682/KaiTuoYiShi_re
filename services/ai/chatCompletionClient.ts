@@ -89,6 +89,8 @@ function detectProvider(config: API配置项): ChatTransportProvider {
   if (config.provider === 'ark' || isArkBaseUrl(config.baseUrl)) return 'ark';
   if (config.provider === 'opencode' || /opencode\.ai\/zen\/v1/i.test(url)) return 'opencode';
   if (config.provider === 'cline' || isClineBaseUrl(config.baseUrl)) return 'cline';
+  if (config.provider === 'huggingface' || /huggingface\.co|hf-inference/i.test(url)) return 'openai_compatible';
+  if (config.provider === 'nvidia_nim' || /integrate\.api\.nvidia\.com|nvidia\.nim/i.test(url)) return 'openai_compatible';
   if (config.provider === 'deepseek' || url.includes('deepseek')) return 'deepseek';
   if (config.provider === 'gemini' || url.includes('gemini') || url.includes('googleapis')) return 'gemini';
   if (shouldUseClaudeMessagesApi(config)) {

@@ -570,12 +570,8 @@ function renderSystemPanel(
 // 從環境變數讀取密碼雜湊（建置時注入）
 const APP_PASSWORD_HASH = import.meta.env.VITE_APP_PASSWORD_HASH || '';
 
-export default function App() {
-  // 密碼門：無雜湊或驗證失敗時顯示密碼門
-  if (!APP_PASSWORD_HASH) {
-    console.warn('[AuthGate] 未設定 VITE_APP_PASSWORD_HASH，跳過密碼驗證');
-  }
-
+// 內層真正的 App 內容（被 AuthGate 包裝）
+function AppInner() {
   const { state, actions } = useGame();
   const pendingMemoryDraftCount = (state.记忆.失败草稿 ?? []).filter(
     (draft) => draft.status === 'pending' || draft.status === 'retrying',
@@ -1170,3 +1166,13 @@ export default function App() {
     );
   }
 }
+
+function AppWithAuth() {
+  return (
+    <AuthGate passwordHash={APP_PASSWORD_HASH}>
+      <AppInner />
+    </AuthGate>
+  );
+}
+
+export default AppWithAuth;
