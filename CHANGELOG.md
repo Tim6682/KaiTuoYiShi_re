@@ -2,6 +2,9 @@
 
 ## v2.2.0 開拓轶事重構版 - 2026-08-29
 
+### 修复
+- 修复 GitHub Pages 子路径部署下智库内置预设全部 404 的问题：内置预设请求改为按构建期 base（import.meta.env.BASE_URL）解析，子路径部署（/KaiTuoYiShi_re/）与根路径部署均兼容
+
 ### 原版存档兼容
 - 验证并固化对原版 KaiTuoYiShi 存档包（ktysave v2）的完整导入支持：解析 → 读档归一化 → 非法清单拒绝
 - 新增回归测试 `pnpm test:original-save-import`（现场构造原版格式存档包，不依赖大型二进制 fixture）

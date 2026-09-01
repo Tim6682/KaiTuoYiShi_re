@@ -38,6 +38,19 @@ function inferGovernanceCategory(id: string): 智库治理分类 | undefined {
   return GOVERNANCE_CATEGORY_BY_PREFIX.get(id.slice(0, 2));
 }
 
+/**
+ * 内置公开资源请求地址解析：preset.path 保持 `/zhiku-presets/...` 逻辑路径
+ * （完整性校验的「来源文件」契约依赖该前缀剥离），仅在 fetch 时按构建期 base
+ * 拼接——GitHub Pages 等子路径部署下 base 为 `/<repo>/`，避免绝对路径 404。
+ */
+function withPublicBase(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path;
+  // import.meta.env 仅在 Vite 构建注入；Node 回归环境（ts.transpileModule）下为
+  // undefined，optional chaining 回退根路径，保证测试与浏览器双环境可运行。
+  const base = import.meta.env?.BASE_URL || '/';
+  return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+}
+
 export const bundledZhikuPresets: BundledZhikuPreset[] = [
   {
     id: 'zhiku_character_rebuild_core',
@@ -345,10 +358,11 @@ export function buildZhikuCustomSystem(
 }
 
 export async function loadBundledZhikuPreset(preset: BundledZhikuPreset, options: LoadBundledZhikuOptions = {}): Promise<智库系统> {
-  const separator = preset.path.includes('?') ? '&' : '?';
+  const requestPath = withPublicBase(preset.path);
+  const separator = requestPath.includes('?') ? '&' : '?';
   const cacheBust = options.cacheBust !== undefined ? `&r=${encodeURIComponent(String(options.cacheBust))}` : '';
   const version = `${ZHIKU_V3_DATA_VERSION}:${preset.updatedAt ?? preset.id}`;
-  const res = await fetch(`${preset.path}${separator}v=${encodeURIComponent(version)}${cacheBust}`);
+  const res = await fetch(`${requestPath}${separator}v=${encodeURIComponent(version)}${cacheBust}`);
   if (!res.ok) {
     throw new Error(`加载智库预设失败：${preset.title}（${res.status}）`);
   }
