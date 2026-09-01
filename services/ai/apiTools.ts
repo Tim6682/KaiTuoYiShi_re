@@ -36,11 +36,13 @@ function isOllamaBaseUrl(baseUrl: string): boolean {
          lower.includes('127.0.0.1:11434');
 }
 
-// 检测 NVIDIA NIM 基础 URL
+// 检测 NVIDIA NIM 基础 URL（官方网关为 integrate.api.nvidia.com；
+// 保留 nim.api / ai.api 以兼容旧配置写法）
 function isNvidiaNimBaseUrl(baseUrl: string): boolean {
   const lower = baseUrl.toLowerCase();
-  return lower.includes('ai.api.nvidia.com') || 
-         lower.includes('nim.api.nvidia.com');
+  return lower.includes('integrate.api.nvidia.com') ||
+    lower.includes('nim.api.nvidia.com') ||
+    lower.includes('ai.api.nvidia.com');
 }
 
 // 检测 Hugging Face 基础 URL

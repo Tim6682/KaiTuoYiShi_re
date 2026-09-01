@@ -70,7 +70,7 @@ const providerOptions: { value: AI提供商; label: string; defaultBaseUrl: stri
   { value: 'claude', label: 'Claude', defaultBaseUrl: 'https://api.anthropic.com/v1', defaultModel: 'claude-sonnet-4-5' },
   { value: 'claude_compatible', label: 'Claude 兼容', defaultBaseUrl: 'https://api.anthropic.com/v1', defaultModel: 'claude-sonnet-4-5' },
   { value: 'gemini', label: 'Gemini', defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta', defaultModel: 'gemini-2.5-pro' },
-   { value: 'nvidia_nim', label: 'NVIDIA NIM', defaultBaseUrl: 'https://ai.api.nvidia.com/v1', defaultModel: 'nim-llama-31-8b-instruct' },
+   { value: 'nvidia_nim', label: 'NVIDIA NIM', defaultBaseUrl: 'https://integrate.api.nvidia.com/v1', defaultModel: 'deepseek-ai/deepseek-v4-flash-0731' },
    { value: 'huggingface', label: 'Hugging Face', defaultBaseUrl: 'https://api-inference.huggingface.co', defaultModel: 'meta-llama/Llama-3.1-8B-Instruct' },
 ];
 
