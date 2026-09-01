@@ -153,6 +153,20 @@ export async function fetchModels(config: any): Promise<string[]> {
   return fetchOpenAICompatibleModels(baseRaw, apiKey);
 }
 
+// Ollama Cloud（ollama.com）实测对浏览器请求无 CORS 头；本地 Ollama 默认
+// OLLAMA_ORIGINS 只放行同源。直连失败时用内置云端清单兜底，并对本地
+// Ollama 给出 OLLAMA_ORIGINS 配置提示。
+const OLLAMA_CLOUD_FALLBACK_MODELS: string[] = [
+  'deepseek-v4-flash', 'deepseek-v4-pro',
+  'minimax-m3', 'minimax-m2.7',
+  'glm-5.1', 'glm-5.2', 'glm-5.3', 'glm-5.3-flash',
+  'kimi-k2.6', 'kimi-k2.7-code', 'kimi-k3',
+  'nemotron-3-ultra', 'nemotron-3-super', 'nemotron-3-nano',
+  'mistral-large-3',
+  'gpt-oss:120b', 'gpt-oss:20b',
+  'gemma4', 'qwen3.5',
+];
+
 // 处理 Ollama 模型列表
 async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<string[]> {
   // Ollama 使用 /api/tags 端点列出模型
@@ -167,6 +181,7 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
   ]));
 
   const errors: string[] = [];
+  const isLocalOllama = /localhost|127\.0\.0\.1/i.test(baseRaw);
 
   for (const url of candidates) {
     try {
@@ -225,8 +240,45 @@ async function fetchOllamaModels(baseRaw: string, apiKey: string): Promise<strin
     }
   }
 
+  // 兜底：直连不可用（ollama.com 无 CORS / 本地 Ollama 未放行跨域）时，
+  // 给出内置云端清单与可操作的修复提示，而不是直接抛错。
+  if (isLocalOllama) {
+    console.warn('[Ollama] 本地 Ollama 浏览器跨域被拒；请在启动 Ollama 时设置 OLLAMA_ORIGINS=* 后重启，再点获取列表。');
+    return [...OLLAMA_CLOUD_FALLBACK_MODELS];
+  }
+  if (OLLAMA_CLOUD_FALLBACK_MODELS.length) {
+    console.warn('[Ollama] 直连不可用（远端无 CORS），使用内置 Ollama Cloud 模型清单兜底。', errors.slice(0, 3));
+    return [...OLLAMA_CLOUD_FALLBACK_MODELS];
+  }
+
   throw new Error(`Ollama 获取模型列表失败：\n${errors.join('\n')}`);
 }
+
+// NVIDIA NIM（integrate.api.nvidia.com）实测对浏览器请求无 CORS 头：
+// 聊天与模型列表在纯静态托管（GitHub Pages）下都无法直连。直连失败时
+// 用内置精选清单兜底（取自实测 /v1/models 的 chat-capable 模型）。
+const NVIDIA_NIM_FALLBACK_MODELS: string[] = [
+  'deepseek-ai/deepseek-v4-flash-0731', 'deepseek-ai/deepseek-v4-pro-0813',
+  'google/gemma-2b', 'google/gemma-3-4b-it', 'google/gemma-3-12b-it', 'google/gemma-4-31b-it',
+  'ibm/granite-3.0-3b-a800m-instruct', 'ibm/granite-3.0-8b-instruct',
+  'meta/llama-3.2-11b-vision-instruct', 'meta/llama-3.2-90b-vision-instruct', 'meta/muse-glimmer-30b',
+  'microsoft/phi-3-vision-128k-instruct', 'microsoft/phi-3.5-moe-instruct',
+  'minimaxai/minimax-m3',
+  'mistralai/mistral-7b-instruct-v0.3', 'mistralai/mistral-large-2-instruct',
+  'mistralai/mistral-nemotron', 'mistralai/mixtral-8x22b-v0.1',
+  'nv-mistralai/mistral-nemo-12b-instruct',
+  'moonshotai/kimi-k2.6', 'moonshotai/kimi-k3',
+  'nvidia/llama-3.1-nemotron-51b-instruct', 'nvidia/llama-3.1-nemotron-70b-instruct',
+  'nvidia/llama-3.1-nemotron-ultra-253b-v1', 'nvidia/llama3-chatqa-1.5-70b',
+  'nvidia/nemotron-3-super-120b-a12b', 'nvidia/nemotron-3-ultra-550b-a55b',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning', 'nvidia/nemotron-3.5-lightning-30b-a3b',
+  'nvidia/nemotron-4-340b-instruct', 'nvidia/nemotron-nano-3-30b-a3b',
+  'nvidia/mistral-nemo-minitron-8b-8k-instruct',
+  'openai/gpt-oss-120b', 'openai/gpt-oss-20b',
+  'writer/palmyra-creative-122b',
+  'ai21labs/jamba-1.5-large-instruct', 'databricks/dbrx-instruct', '01-ai/yi-large',
+  'aisingapore/sea-lion-7b-instruct',
+];
 
 // 处理 NVIDIA NIM 模型列表
 async function fetchNvidiaNimModels(baseRaw: string, apiKey: string): Promise<string[]> {
@@ -280,6 +332,13 @@ async function fetchNvidiaNimModels(baseRaw: string, apiKey: string): Promise<st
       });
       errors.push(`${url} -> ${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+
+  // 兜底：浏览器直连被 CORS 拦（GitHub Pages 等静态托管必然发生）时，
+  // 给出内置精选清单，保证用户仍可从官方已发布模型中选择。
+  if (NVIDIA_NIM_FALLBACK_MODELS.length) {
+    console.warn('[NVIDIA NIM] 浏览器直连被 CORS 拦截，使用内置精选模型清单兜底。', errors.slice(0, 3));
+    return [...NVIDIA_NIM_FALLBACK_MODELS];
   }
 
   throw new Error(`NVIDIA NIM 获取模型列表失败：\n${errors.join('\n')}`);
