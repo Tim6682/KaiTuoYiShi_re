@@ -359,7 +359,9 @@ async function fetchHuggingFaceModels(baseRaw: string, apiKey: string): Promise<
   return defaultModels;
 }
 
-// 处理 OpenCode Zen 模型列表（使用代理避免 CORS 问题）
+// 处理 OpenCode Zen 模型列表：官方 /models 端点 CORS 全开（allow-origin: *），
+// 浏览器直连优先——GitHub Pages 等无后端部署也可用；/api/opencode 代理仅作
+// 兜底（本地 dev middleware / Cloudflare Pages Functions 环境）。
 async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<string[]> {
   const base = normalizeOpenCodeModelsBaseUrl(baseRaw);
   // 移除可能的 /v1 后缀以获得一致的基础 URL
@@ -374,21 +376,60 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
   ]));
 
   const errors: string[] = [];
+  const extractIds = (data: unknown): string[] => {
+    const list = (data as { data?: unknown } | null)?.data;
+    if (!Array.isArray(list)) return [];
+    const ids: string[] = [];
+    for (const item of list) {
+      const id = (item as { id?: unknown } | null)?.id;
+      if (typeof id === 'string' && id.trim().length > 0) ids.push(id);
+    }
+    return ids;
+  };
 
   for (const url of candidates) {
+    let directFailed = false;
+    // 1. 浏览器直连（官方端点支持跨域）
     try {
-      // OpenCode Zen 需要通过本地代理访问以避免 CORS 问题
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (res.ok) {
+        const ids = extractIds(await res.json().catch(() => null));
+        if (ids.length) return ids;
+        errors.push(`${url}（直连）-> 返回格式异常（缺 data 数组）`);
+      } else {
+        directFailed = true;
+        const text = await res.text().catch(() => '');
+        errors.push(`${url}（直连）-> ${res.status}${text ? `：${text.slice(0, 120)}` : ''}`);
+      }
+    } catch (error) {
+      directFailed = true;
+      void appendApiErrorReport({
+        source: 'OpenCode Zen 模型列表',
+        config: { provider: 'openai_compatible', baseUrl: baseRaw, apiKey },
+        requestUrl: url,
+        requestMode: 'models',
+        error,
+      });
+      errors.push(`${url}（直连）-> ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    if (!directFailed && !errors.length) continue;
+
+    // 2. 代理兜底（仅本地 dev / CF Pages 有该路由）
+    try {
       const res = await fetch('/api/opencode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kind: 'models',
-          baseUrl: url,
-          apiKey,
-        }),
+        body: JSON.stringify({ kind: 'models', baseUrl: url, apiKey }),
       });
-
-      if (!res.ok) {
+      if (res.ok) {
+        const ids = extractIds(await res.json().catch(() => null));
+        if (ids.length) return ids;
+        errors.push(`${url}（代理）-> 返回格式异常（缺 data 数组）`);
+      } else {
         const text = await res.text().catch(() => '');
         void appendApiErrorReport({
           source: 'OpenCode Zen 模型列表',
@@ -398,18 +439,8 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
           requestMode: 'models',
           responseText: text,
         });
-        errors.push(`${url} -> ${res.status}${text ? `：${text.slice(0, 120)}` : ''}`);
-        continue;
+        errors.push(`${url}（代理）-> ${res.status}${text ? `：${text.slice(0, 120)}` : ''}`);
       }
-
-      const data = await res.json();
-      if (data && Array.isArray(data.data)) {
-        const ids = data.data
-          .map((model: { id?: string }) => model?.id)
-          .filter((id: unknown): id is string => typeof id === 'string' && id.trim().length > 0);
-        if (ids.length) return ids;
-      }
-      errors.push(`${url} -> 返回格式异常（缺 data 数组）`);
     } catch (error) {
       void appendApiErrorReport({
         source: 'OpenCode Zen 模型列表',
@@ -418,7 +449,7 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
         requestMode: 'models',
         error,
       });
-      errors.push(`${url} -> ${error instanceof Error ? error.message : String(error)}`);
+      errors.push(`${url}（代理）-> ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

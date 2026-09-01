@@ -59,8 +59,12 @@ assert(!client.includes("if (provider === 'opencode') {\n    return streamOpenAI
 
 assert(apiTools.includes("config.provider === 'opencode'"), '模型列表必须支持 OpenCode Zen provider。');
 assert(apiTools.includes('fetchOpenCodeModels(baseRaw, apiKey)'), 'OpenCode Zen 模型列表必须使用专用函数。');
-assert(apiTools.includes('https://opencode.ai/zen/v1/models'), 'OpenCode Zen 模型列表必须指向官方 Zen v1 models。');
-assert(apiTools.includes("fetch('/api/opencode'"), 'OpenCode Zen 模型列表必须走同源代理，避免浏览器 CORS Failed to fetch。');
+// 官方 /models 端点 CORS 全开（allow-origin: *），直连优先适配无后端部署（GitHub Pages）；
+// 代理兜底保留给本地 dev / Cloudflare Pages 环境。
+assert(apiTools.includes('（直连）'), 'OpenCode Zen 模型列表必须先尝试浏览器直连官方端点。');
+assert(apiTools.includes("method: 'GET'"), 'OpenCode Zen 直连必须使用 GET 请求。');
+assert(apiTools.includes('（代理）'), 'OpenCode Zen 模型列表必须保留同源代理兜底。');
+assert(apiTools.includes("fetch('/api/opencode'"), 'OpenCode Zen 模型列表必须保留代理路径，避免直连异常时无路可走。');
 assert(apiTools.includes("replace(/\\/zen\\/go\\/v1/i, '/zen/v1')"), 'OpenCode Zen 必须归一化玩家误填的 /zen/go/v1。');
 assert(apiTools.includes('OpenCode Zen 模型列表'), 'OpenCode Zen 模型列表失败必须记录专用来源。');
 
