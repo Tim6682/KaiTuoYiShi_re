@@ -126,6 +126,26 @@ pnpm build
 
 项目不会自带任何 API Key。运行后需要在应用设置中配置自己的模型接口。
 
+### 部署到 Cloudflare Pages（推荐，含后端代理）
+
+GitHub Pages 为纯静态托管，OpenCode Zen / NVIDIA NIM / Ollama Cloud 等供应商的聊天请求会被 CORS 拦截。Cloudflare Pages 带后端代理（`functions/api/*`），聊天主流程全供应商可用：
+
+```bash
+# 登录（首次）
+wrangler login
+
+# 构建（根路径 base）
+pnpm build
+
+# 部署（首次会自动创建项目；KV 资源见 wrangler.toml）
+wrangler pages deploy dist --project-name kaituoyishi
+```
+
+部署后可选在 Cloudflare Dashboard → Pages 项目设置中配置构建环境变量：
+
+- `VITE_APP_PASSWORD_HASH`：密码门（SHA-256，可选）
+- `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`：GitHub 云存档 OAuth（可选）
+
 ### 原版存档兼容
 
 本分支可直接导入原版 [KaiTuoYiShi](https://github.com/LingYuYue1/KaiTuoYiShi) 导出的存档包（`.ktysave` / `.zip`，`packageVersion 2`）。导入路径：存档面板 → 导入存档包。读档时旧档会自动补齐新系统字段（剧情运行时切片、忆庭、智库目录等），无需手动迁移。
