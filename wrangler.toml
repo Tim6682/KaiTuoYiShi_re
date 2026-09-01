@@ -7,4 +7,4 @@ ONLINE_SESSIONS_KV_PREFIX = "kaituoyishi/online"
 
 [[kv_namespaces]]
 binding = "ONLINE_SESSIONS_KV"
-id = "fa2733b4a1b64405997a4f34f725234f"
+id = "b7b54dfe1f914e7ea549cdfe67c7ba1e"
