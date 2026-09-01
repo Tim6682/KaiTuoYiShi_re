@@ -38,7 +38,7 @@ for (const file of settingTabs) {
 assert(client.includes("config.provider === 'opencode'"), 'OpenCode Zen 必须作为独立 provider 检测。');
 assert(client.includes("return 'opencode'"), 'OpenCode Zen 检测不能落回 OpenAI 兼容。');
 assert(client.includes('function inferOpenCodeEndpoint'), 'OpenCode Zen 必须按模型族推断 endpoint。');
-assert(client.includes("replace(/\\/zen\\/go\\/v1/i, '/zen/v1')"), 'OpenCode Zen 主请求必须归一化玩家误填的 /zen/go/v1。');
+assert(!client.includes("replace(/\\/zen\\/go\\/v1/i, '/zen/v1')"), 'OpenCode Go 网关不得在主请求路径被折叠成 Zen 通用网关。');
 assert(client.includes("return 'responses'"), 'GPT 系列 OpenCode Zen 模型必须走 /responses。');
 assert(client.includes("if (/^(claude|qwen)/.test(id)) return 'messages';"), 'Claude/Qwen 系列 OpenCode Zen 模型必须走 /messages。');
 assert(client.includes("return 'gemini'"), 'Gemini 系列 OpenCode Zen 模型必须走 Gemini 风格 endpoint。');
@@ -66,14 +66,15 @@ assert(apiTools.includes('（直连）'), 'OpenCode Zen 模型列表必须先尝
 assert(apiTools.includes("method: 'GET'"), 'OpenCode Zen 直连必须使用 GET 请求。');
 assert(apiTools.includes('（代理）'), 'OpenCode Zen 模型列表必须保留同源代理兜底。');
 assert(apiTools.includes('OPENCODE_ZEN_FALLBACK_MODELS'), 'OpenCode Zen 模型列表必须内置官方清单兜底（无后端部署可用）。');
+assert(apiTools.includes('OPENCODE_ZEN_GO_FALLBACK_MODELS'), 'OpenCode Go 方案必须有专属内置清单兜底。');
+assert(apiTools.includes('isOpenCodeGoBaseUrl'), 'OpenCode Go 方案清单兜底必须按网关路径分流。');
 assert(apiTools.includes('deepseek-v4-flash'), 'OpenCode Zen 内置清单必须包含默认模型。');
-assert(apiTools.includes("fetch('/api/opencode'"), 'OpenCode Zen 模型列表必须保留代理路径，避免直连异常时无路可走。');
-assert(apiTools.includes("replace(/\\/zen\\/go\\/v1/i, '/zen/v1')"), 'OpenCode Zen 必须归一化玩家误填的 /zen/go/v1。');
-assert(apiTools.includes('OpenCode Zen 模型列表'), 'OpenCode Zen 模型列表失败必须记录专用来源。');
-
+// /zen/go/v1 是 OpenCode Go 方案的官方网关（独立模型清单），不得折叠成 /zen/v1。
+assert(!apiTools.includes("replace(/\\/zen\\/go\\/v1/i, '/zen/v1')"), 'OpenCode Go 网关不得被折叠成 Zen 通用网关（两方案模型清单不同）。');
 assert(opencodeProxy.includes('handleOpenCodeProxyRequest'), 'Cloudflare OpenCode Zen 代理必须复用共享代理核心。');
-assert(opencodeProxyCore.includes('opencode.ai/zen/v1'), 'OpenCode Zen 代理必须限制只能转发到 opencode.ai/zen/v1。');
-assert(opencodeProxyCore.includes("replace(/\\/zen\\/go\\/v1/i, '/zen/v1')"), 'OpenCode Zen 代理必须兼容 /zen/go/v1 误填。');
+assert(opencodeProxyCore.includes('opencode.ai/zen/v1'), 'OpenCode Zen 代理必须限制只能转发到 opencode.ai Zen 网关。');
+assert(opencodeProxyCore.includes("zen(?:\\/go)?\\/v1"), 'OpenCode 代理白名单必须同时放行 Zen 与 Go 方案网关。');
+assert(!opencodeProxyCore.includes("replace(/\\/zen\\/go\\/v1/i, '/zen/v1')"), 'OpenCode 代理不得折叠 Go 方案网关。');
 assert(opencodeProxyCore.includes("endpoint?: 'chat' | 'messages' | 'responses' | 'gemini'"), 'OpenCode Zen 代理必须支持各模型族 endpoint。');
 assert(viteConfig.includes("server.middlewares.use('/api/opencode'"), '本地 Vite 开发模式必须支持 /api/opencode 代理。');
 assert(viteConfig.includes('handleOpenCodeProxyRequest'), '本地 Vite OpenCode 代理必须复用同一套代理核心。');

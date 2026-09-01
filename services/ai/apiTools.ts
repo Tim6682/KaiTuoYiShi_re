@@ -52,19 +52,24 @@ function isHuggingFaceBaseUrl(baseUrl: string): boolean {
          lower.includes('api-inference.huggingface.co');
 }
 
-// 标准化 OpenCode Zen 基础 URL
+// 标准化 OpenCode Zen 基础 URL（/zen/v1 与 /zen/go/v1 均为官方网关，不互相折叠：
+// 两者模型清单不同，折叠会让 Go 方案拿到 Zen 通用清单）
 function normalizeOpenCodeModelsBaseUrl(baseRaw: string): string {
   let base = baseRaw.replace(/\/+$/, '');
   base = base.split('?')[0] ?? base;
   base = base
-    .replace(/\/zen\/go\/v1/i, '/zen/v1')
     .replace(/\/chat\/completions$/i, '')
     .replace(/\/messages$/i, '')
     .replace(/\/responses$/i, '')
     .replace(/\/models(?:\/.*)?$/i, '');
   if (/^https:\/\/opencode\.ai$/i.test(base)) return `${base}/zen/v1`;
+  if (/^https:\/\/opencode\.ai\/zen$/i.test(base)) return `${base}/v1`;
   if (/\/zen$/i.test(base)) return `${base}/v1`;
   return base;
+}
+
+function isOpenCodeGoBaseUrl(baseRaw: string): boolean {
+  return /opencode\.ai\/zen\/go\/v1/i.test(baseRaw);
 }
 
 // 存根函数（待实现的服务）
@@ -447,6 +452,19 @@ const OPENCODE_ZEN_FALLBACK_MODELS: string[] = [
   'muse-spark-1.2-contributor-free',
 ];
 
+// OpenCode Go 方案（/zen/go/v1）专属清单（取自实测 /zen/go/v1/models）。
+const OPENCODE_ZEN_GO_FALLBACK_MODELS: string[] = [
+  'minimax-m3', 'minimax-m2.7', 'minimax-m2.5',
+  'kimi-k3', 'kimi-k2.7-code', 'kimi-k2.6', 'kimi-k2.5',
+  'longcat-2.0',
+  'glm-5.2', 'glm-5.3-flash', 'glm-5.3', 'glm-5.1', 'glm-5',
+  'deepseek-v4-pro', 'deepseek-v4-flash', 'deepseek-v4-flash-vision-exp',
+  'qwen3.7-max', 'qwen3.8-max', 'qwen3.8-flash', 'qwen3.7-plus', 'qwen3.6-plus', 'qwen3.5-plus',
+  'mimo-v2-pro', 'mimo-v2-omni', 'mimo-v2.5-pro', 'mimo-v2.5',
+  'hy4-preview', 'hy3', 'hy3-preview',
+  'gpt-5.6-luna', 'grok-4.5', 'grok-4.6', 'muse-spark-1.2-contributor',
+];
+
 async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<string[]> {
   const base = normalizeOpenCodeModelsBaseUrl(baseRaw);
   // 移除可能的 /v1 后缀以获得一致的基础 URL
@@ -539,7 +557,11 @@ async function fetchOpenCodeModels(baseRaw: string, apiKey: string): Promise<str
   }
 
   // 3. 内置官方清单兜底：直连与代理都不可用时（如 GitHub Pages 无后端），
-  //    保证用户仍能从官方已发布模型中选择，而不是直接失败。
+  //    按 Go / Zen 方案分别给出对应的官方模型集合。
+  if (isOpenCodeGoBaseUrl(baseRaw) && OPENCODE_ZEN_GO_FALLBACK_MODELS.length) {
+    console.warn('[OpenCode Zen Go] 直连与代理均不可用，使用内置 Go 方案模型清单兜底。', errors.slice(0, 4));
+    return [...OPENCODE_ZEN_GO_FALLBACK_MODELS];
+  }
   if (OPENCODE_ZEN_FALLBACK_MODELS.length) {
     console.warn('[OpenCode Zen] 直连与代理均不可用，使用内置官方模型清单兜底。', errors.slice(0, 4));
     return [...OPENCODE_ZEN_FALLBACK_MODELS];

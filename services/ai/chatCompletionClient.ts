@@ -87,7 +87,7 @@ function detectProvider(config: API配置项): ChatTransportProvider {
   const url = config.baseUrl.toLowerCase();
   if (config.provider === 'mimo' || /xiaomimimo|mimo\.mi/i.test(url)) return 'mimo';
   if (config.provider === 'ark' || isArkBaseUrl(config.baseUrl)) return 'ark';
-  if (config.provider === 'opencode' || /opencode\.ai\/zen\/v1/i.test(url)) return 'opencode';
+  if (config.provider === 'opencode' || /opencode\.ai\/zen(?:\/go)?\/v1/i.test(url)) return 'opencode';
   if (config.provider === 'cline' || isClineBaseUrl(config.baseUrl)) return 'cline';
   if (config.provider === 'huggingface' || /huggingface\.co|hf-inference/i.test(url)) return 'openai_compatible';
   if (config.provider === 'nvidia_nim' || /integrate\.api\.nvidia\.com|nvidia\.nim/i.test(url)) return 'openai_compatible';
@@ -299,7 +299,8 @@ function normalizeOpenCodeBaseUrl(baseUrl: string): string {
   let base = baseUrl.trim().replace(/\/+$/, '');
   base = base.split('?')[0] ?? base;
   base = base
-    .replace(/\/zen\/go\/v1/i, '/zen/v1')
+    // /zen/v1（Zen 通用）与 /zen/go/v1（Go 方案）都是官方合法网关，不互相折叠：
+    // 两者模型清单不同，折叠会导致 Go 方案拿到错误的模型集合。
     .replace(/\/chat\/completions$/i, '')
     .replace(/\/messages$/i, '')
     .replace(/\/responses$/i, '')

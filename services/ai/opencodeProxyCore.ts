@@ -16,7 +16,7 @@ function normalizeOpenCodeBaseUrl(baseUrl: string): string {
   let base = baseUrl.trim().replace(/\/+$/, '');
   base = base.split('?')[0] ?? base;
   base = base
-    .replace(/\/zen\/go\/v1/i, '/zen/v1')
+    // /zen/v1（Zen 通用）与 /zen/go/v1（Go 方案）均为官方网关，不互相折叠。
     .replace(/\/chat\/completions$/i, '')
     .replace(/\/messages$/i, '')
     .replace(/\/responses$/i, '')
@@ -29,8 +29,8 @@ function normalizeOpenCodeBaseUrl(baseUrl: string): string {
 
 function assertOpenCodeBaseUrl(baseUrl: string): string {
   const base = normalizeOpenCodeBaseUrl(baseUrl);
-  if (!/^https:\/\/opencode\.ai\/zen\/v1(?:\/|$)/i.test(base)) {
-    throw new Error('仅允许代理 OpenCode Zen：opencode.ai/zen/v1。');
+  if (!/^https:\/\/opencode\.ai\/zen(?:\/go)?\/v1(?:\/|$)/i.test(base)) {
+    throw new Error('仅允许代理 OpenCode Zen：opencode.ai/zen/v1 或 opencode.ai/zen/go/v1。');
   }
   return base;
 }
