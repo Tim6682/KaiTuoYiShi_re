@@ -19,6 +19,7 @@
     "test:save-isolation": "node scripts/save-isolation-regression.mjs",
     "test:save-package": "node scripts/save-package-regression.mjs",
     "test:web-storage-contract": "node scripts/web-storage-contract-regression.mjs",
+    "test:original-save-import": "node scripts/original-save-import-regression.mjs",
     "test:web-only-retirement": "node scripts/web-only-retirement-regression.mjs",
     "test:api-profile": "node scripts/api-profile-regression.mjs",
     "test:api-connection": "node scripts/gemini-connection-regression.mjs",

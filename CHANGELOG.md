@@ -2,6 +2,10 @@
 
 ## v2.2.0 開拓轶事重構版 - 2026-08-29
 
+### 原版存档兼容
+- 验证并固化对原版 KaiTuoYiShi 存档包（ktysave v2）的完整导入支持：解析 → 读档归一化 → 非法清单拒绝
+- 新增回归测试 `pnpm test:original-save-import`（现场构造原版格式存档包，不依赖大型二进制 fixture）
+
 ### 重大更新
 - 專案遷移至新倉庫：Tim6682/KaiTuoYiShi_re
 - 完善專案結構與模組化架構

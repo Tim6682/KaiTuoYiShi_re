@@ -126,6 +126,16 @@ pnpm build
 
 项目不会自带任何 API Key。运行后需要在应用设置中配置自己的模型接口。
 
+### 原版存档兼容
+
+本分支可直接导入原版 [KaiTuoYiShi](https://github.com/LingYuYue1/KaiTuoYiShi) 导出的存档包（`.ktysave` / `.zip`，`packageVersion 2`）。导入路径：存档面板 → 导入存档包。读档时旧档会自动补齐新系统字段（剧情运行时切片、忆庭、智库目录等），无需手动迁移。
+
+可用以下回归测试验证兼容链路（构造原版格式存档包 → 解析 → 读档归一化 → 非法清单拒绝）：
+
+```bash
+pnpm test:original-save-import
+```
+
 ## 项目结构
 
 ```text
