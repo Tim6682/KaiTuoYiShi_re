@@ -59,11 +59,14 @@ assert(!client.includes("if (provider === 'opencode') {\n    return streamOpenAI
 
 assert(apiTools.includes("config.provider === 'opencode'"), '模型列表必须支持 OpenCode Zen provider。');
 assert(apiTools.includes('fetchOpenCodeModels(baseRaw, apiKey)'), 'OpenCode Zen 模型列表必须使用专用函数。');
-// 官方 /models 端点 CORS 全开（allow-origin: *），直连优先适配无后端部署（GitHub Pages）；
-// 代理兜底保留给本地 dev / Cloudflare Pages 环境。
+// 官方 /models 端点当前对 GET 响应不带 CORS 头（仅 OPTIONS 带），直连仅作前瞻；
+// 代理兜底用于本地 dev / Cloudflare Pages；内置官方清单是 GitHub Pages 等无后端
+// 部署的最终可用路径。
 assert(apiTools.includes('（直连）'), 'OpenCode Zen 模型列表必须先尝试浏览器直连官方端点。');
 assert(apiTools.includes("method: 'GET'"), 'OpenCode Zen 直连必须使用 GET 请求。');
 assert(apiTools.includes('（代理）'), 'OpenCode Zen 模型列表必须保留同源代理兜底。');
+assert(apiTools.includes('OPENCODE_ZEN_FALLBACK_MODELS'), 'OpenCode Zen 模型列表必须内置官方清单兜底（无后端部署可用）。');
+assert(apiTools.includes('deepseek-v4-flash'), 'OpenCode Zen 内置清单必须包含默认模型。');
 assert(apiTools.includes("fetch('/api/opencode'"), 'OpenCode Zen 模型列表必须保留代理路径，避免直连异常时无路可走。');
 assert(apiTools.includes("replace(/\\/zen\\/go\\/v1/i, '/zen/v1')"), 'OpenCode Zen 必须归一化玩家误填的 /zen/go/v1。');
 assert(apiTools.includes('OpenCode Zen 模型列表'), 'OpenCode Zen 模型列表失败必须记录专用来源。');
