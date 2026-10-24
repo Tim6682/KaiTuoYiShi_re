@@ -366,7 +366,9 @@ function IconButton({
       onClick={onClick}
       disabled={disabled}
       title={tooltip}
-      className="flex h-7 w-9 items-center justify-center font-serif text-base transition-all hover:bg-[rgba(var(--tj-accent-primary),0.14)] disabled:opacity-30 disabled:cursor-not-allowed"
+      aria-label={tooltip}
+      aria-pressed={active}
+      className="flex h-7 w-9 items-center justify-center font-serif text-base transition-all hover:bg-[rgba(var(--tj-accent-primary),0.14)] disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--tj-accent-primary),0.6)]"
       style={{
         color: active ? 'rgb(var(--tj-accent-primary))' : 'rgba(var(--tj-accent-primary), 0.85)',
         background: active ? 'rgba(var(--tj-accent-primary), 0.14)' : 'rgba(var(--tj-accent-primary), 0.05)',
@@ -376,7 +378,7 @@ function IconButton({
         clipPath: iconClip,
       }}
     >
-      {glyph}
+      <span aria-hidden="true">{glyph}</span>
     </button>
   );
 }
