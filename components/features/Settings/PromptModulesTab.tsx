@@ -1362,6 +1362,7 @@ function PresetSwitcher({
                 type="button"
                 onClick={startRename}
                 title="重命名当前预设"
+                aria-label="重命名当前预设"
                 className="px-2.5 py-1.5 text-xs transition-all hover:opacity-80"
                 style={{
                   color: 'rgba(var(--tj-ui-nsfw), 0.92)',
@@ -1412,6 +1413,7 @@ function PresetSwitcher({
           <button
             type="button"
             onClick={commitRename}
+            aria-label="确认重命名"
             className="px-2.5 py-1.5 text-xs transition-all hover:opacity-80"
             style={{
               color: 'rgba(var(--tj-ui-nsfw), 0.92)',
