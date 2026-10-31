@@ -353,8 +353,12 @@ function ToggleField({
         </div>
       </div>
       <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
         onClick={() => onChange(!checked)}
-        className="relative h-6 w-11 flex-shrink-0 transition-all"
+        className="relative h-6 w-11 flex-shrink-0 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[rgba(var(--tj-accent-primary),0.6)]"
         style={{
           background: checked
             ? 'linear-gradient(135deg, rgba(var(--tj-btn-primary-start), 0.95), rgba(var(--tj-btn-primary-end), 0.86))'
