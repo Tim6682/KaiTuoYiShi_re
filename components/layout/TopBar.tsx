@@ -66,6 +66,8 @@ export const TopBar = memo(function TopBar({ worldState, onHome, news, onOpenNew
             <button
               type="button"
               onClick={() => setMobileExpanded((current) => !current)}
+              aria-expanded={mobileExpanded}
+              aria-label={mobileExpanded ? '收起状态详情' : '展开状态详情'}
               className="max-w-[calc(100vw-96px)] px-3 py-2 text-left transition-all"
               style={{
                 color: 'rgb(var(--tj-text-primary))',
@@ -167,6 +169,7 @@ export const TopBar = memo(function TopBar({ worldState, onHome, news, onOpenNew
         {/* ── 上层：左列品牌 ── */}
         <button
           onClick={onHome}
+          aria-label="返回首页"
           className="relative z-10 flex items-center gap-2.5 transition-opacity hover:opacity-80 justify-self-start"
         >
           <span className="text-base" style={{ color: 'rgba(var(--tj-accent-primary), 0.75)' }}>+</span>
