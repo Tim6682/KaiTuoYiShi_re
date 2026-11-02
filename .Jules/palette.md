@@ -1,0 +1,3 @@
+## 2026-11-02 - Modal & SystemDrawer ARIA bindings
+**Learning:** Core modal and drawer components were missing correct roles and bindings (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`), making it hard for screen readers to recognize when a modal has been opened or properly announce its title.
+**Action:** When building or maintaining dialog wrappers in the design system, always ensure they are correctly tagged as dialogs and their main heading is bound as the dialog label.
