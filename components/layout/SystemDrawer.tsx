@@ -32,6 +32,9 @@ export function SystemDrawer({ open, title, subtitle, glyph, onClose, children }
           transform: open ? 'translateX(0)' : 'translateX(105%)',
         }}
         aria-hidden={!open}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="drawer-title"
       >
         {/* 左侧中部圆形关闭按钮 —— 大抽屉下手最顺的关闭入口 */}
         <button
@@ -80,6 +83,7 @@ export function SystemDrawer({ open, title, subtitle, glyph, onClose, children }
           )}
           <div className="min-w-0 flex-1">
             <h3
+              id="drawer-title"
               className="truncate font-serif text-lg font-semibold tracking-[0.3em]"
               style={{
                 background:
