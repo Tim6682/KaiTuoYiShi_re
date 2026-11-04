@@ -232,6 +232,7 @@ export function WorldbookManagerModal({ worldbooks, onSave, onClose }: Props) {
               className="ml-1 cursor-pointer px-2 py-1 text-sm font-serif tracking-wider transition-all duration-200 hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[rgba(var(--tj-accent-primary),0.6)] md:py-1.5 md:text-base"
               style={{ color: 'rgba(var(--tj-text-secondary), 0.7)' }}
               title="关闭"
+              aria-label="关闭"
             >
               ×
             </button>

@@ -39,7 +39,7 @@ export function SystemDrawer({ open, title, subtitle, glyph, onClose, children }
           onClick={onClose}
           aria-label="关闭面板"
           title="关闭"
-          className="absolute z-50 flex h-9 w-9 items-center justify-center font-serif text-base transition-all hover:bg-[rgba(var(--tj-accent-primary),0.18)]"
+          className="absolute z-50 flex h-9 w-9 items-center justify-center font-serif text-base transition-all hover:bg-[rgba(var(--tj-accent-primary),0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--tj-accent-primary),0.6)]"
           style={{
             top: '50%',
             left: '-18px',
@@ -102,9 +102,10 @@ export function SystemDrawer({ open, title, subtitle, glyph, onClose, children }
           </div>
           <button
             onClick={onClose}
-            className="px-2 py-1 text-lg font-serif transition-all hover:opacity-80"
+            className="px-2 py-1 text-lg font-serif transition-all hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--tj-accent-primary),0.6)]"
             style={{ color: 'rgba(var(--tj-text-secondary), 0.7)' }}
             title="关闭"
+            aria-label="关闭"
           >
             ×
           </button>
