@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 
 interface ModalProps {
   children: ReactNode;
@@ -9,6 +9,7 @@ interface ModalProps {
 }
 
 export function Modal({ children, onClose, title, className = 'max-w-2xl' }: ModalProps) {
+  const titleId = useId();
   useEffect(() => {
     document.body.classList.add('modal-open');
     const handleEsc = (e: KeyboardEvent) => {
@@ -26,13 +27,19 @@ export function Modal({ children, onClose, title, className = 'max-w-2xl' }: Mod
       className="kaituo-modal-overlay fixed inset-0 z-50 flex items-stretch justify-center p-0 md:items-center md:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className={`kaituo-modal-shell flex h-[100dvh] w-full min-w-0 animate-slide-up flex-col overflow-hidden md:h-auto md:max-h-[85vh] ${className}`}>
+      <div
+        className={`kaituo-modal-shell flex h-[100dvh] w-full min-w-0 animate-slide-up flex-col overflow-hidden md:h-auto md:max-h-[85vh] ${className}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+      >
         {title && (
           <>
             <div className="flex items-center justify-between gap-3 px-4 py-3.5 md:px-5">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="text-base" style={{ color: 'rgba(var(--tj-accent-primary), 0.7)' }}>◆</span>
                 <h2
+                  id={titleId}
                   className="min-w-0 truncate font-serif text-lg font-bold tracking-[0.2em]"
                   style={{
                     background: 'linear-gradient(180deg, rgb(var(--tj-text-primary)) 0%, rgb(var(--tj-accent-primary)) 60%, rgb(var(--tj-accent-secondary)) 100%)',
