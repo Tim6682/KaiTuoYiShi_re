@@ -105,6 +105,7 @@ export function SystemDrawer({ open, title, subtitle, glyph, onClose, children }
             className="px-2 py-1 text-lg font-serif transition-all hover:opacity-80"
             style={{ color: 'rgba(var(--tj-text-secondary), 0.7)' }}
             title="关闭"
+            aria-label="关闭"
           >
             ×
           </button>
