@@ -66,6 +66,7 @@ export const LeftPanel = memo(function LeftPanel({
           onClick={onOpenProfile}
           disabled={!onOpenProfile}
           title={onOpenProfile ? '查看旅人档案' : undefined}
+          aria-label={onOpenProfile ? '查看旅人档案' : '旅人档案'}
           className="group mt-1 flex flex-col items-center transition-all hover:opacity-95 disabled:cursor-default disabled:hover:opacity-100"
         >
           {/* Avatar */}
@@ -154,6 +155,7 @@ export const LeftPanel = memo(function LeftPanel({
               'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
           }}
           title="打开手机"
+          aria-label="打开手机"
         >
           <span className="flex items-center gap-2">
             <span className="font-serif text-base" style={{ color: 'rgb(var(--tj-accent-primary))' }}>▣</span>
@@ -238,6 +240,8 @@ function RecallSummaryWindow({ content, fullContent }: { content: string; fullCo
               clipPath: 'polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px)',
             }}
             title={full ? '显示完整召回内容' : '本回合没有完整召回内容'}
+            aria-expanded={expanded}
+            aria-label={expanded ? '收起完整召回内容' : '显示完整召回内容'}
           >
             {expanded ? '收起' : '完整'}
           </button>
